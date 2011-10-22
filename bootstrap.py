@@ -122,6 +122,7 @@ class Bootstrapper:
     hosts = {}
     #myip = urlopen('http://whatismyip.org/').read()
     myip = socket.gethostbyname(socket.gethostname())
+    print "BOOTSTRAP IP", Bootstrapper.myip
 
     def __init__(self, pkey):
         self.pkey = pkey
