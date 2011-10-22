@@ -61,10 +61,7 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        try:
-            self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
-        except Exception as e:
-            print "Unable to load json data due to exception: %s" % e
+        self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
 
     def lineReceived(self, line):
          pass
