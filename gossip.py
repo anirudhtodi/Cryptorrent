@@ -99,7 +99,7 @@ class GossipServer:
                     if file_offer:
                         print "\tHave File:", item
                         manager_ip = item[3]
-                        if manager_ip == self.boostrapper.myip:
+                        if manager_ip == self.bootstrapper.myip:
                             self.manager.manage(('has_file', self.bootstrapper.myip, file_offer, item, 1))
                         else:
                             self.gossip_queue.append(manager_ip, file_offer)    
@@ -193,7 +193,7 @@ class ManagerNode(GossipServer):
         filesize = item[2]
         filereq = item[3]
         filename = filereq[2]
-        if not self.files_to_process.contains(filereq):
+        if not (filereq in self.files_to_process):
             print "Initializing management of:", filereq
             self.files_to_process.put(filereq, [0, filesize])
         self.files_to_process[filereq].add(source_ip)
