@@ -198,17 +198,17 @@ class ManagerNode(GossipServer):
     def manage(self, item):
         # Register each file that this node should be a manager of
         # Register every node that tells the manager that it is the source
+        print "MANAGEMNT STARTED:", item
         source_ip = item[1]
         filesize = item[2]
         filereq = item[3]
         filename = filereq[2]
-        if not (filereq in self.files_to_process):
-            print "Initializing management of:", filereq
-            self.files_to_process[filereq] = [0, filesize]
-        self.files_to_process[filereq].append(source_ip)
+        if not (filereq[:-1] in self.files_to_process):
+            print "Initializing management of:", filereq[:-1]
+            self.files_to_process[filereq[:-1]] = [0, filesize]
+        self.files_to_process[filereq[:-1]].append(source_ip)
 
     def process_chunk_requests(self):
-        print self.files_to_process
         for filereq_to_process, filereq_info in self.files_to_process.items():
             amount_processed = filereq_info[0]
             filesize = filereq_info[1]
