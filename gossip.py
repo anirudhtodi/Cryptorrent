@@ -185,7 +185,6 @@ class GossipServer:
                     self.filemanager.receive_chunk('files/' + filename, start, end, data)
                     self.file_lock.release()
                 elif item[0] == 'send_chunk':
-                    print "RECEIVED REQUEST FOR CHUNK"
                     tag, dest_ip, start, end, filereq = item
                     tag, destip, filename, mip = filereq
 
