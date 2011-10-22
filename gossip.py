@@ -51,7 +51,8 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
+        decr =  encryption.decrypt(line)
+        self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
         
     def lineReceived(self, line):
          pass
@@ -117,9 +118,8 @@ class GossipServer:
                     print "RECEIVED CHUNK"
                     tag, start, end, data, filereq = item
                     tag, destip, filename, mip = filereq
-                    decrypted_data = encryption.decrypt(data)
                     self.file_lock.acquire()
-                    self.filemanager.receive_chunk('files/' + filename, start, end, decrypted_data)
+                    self.filemanager.receive_chunk('files/' + filename, start, end, data)
                     self.file_lock.release()
                 elif item[0] == 'send_chunk':
                     print "RECEIVED REQUEST FOR CHUNK"
@@ -127,9 +127,9 @@ class GossipServer:
                     tag, destip, filename, mip = filereq
                     
                     file_chunk = self.filemanager.find_chunk('files/' + filename, start, end)
-                    encrypted_chunk = encryption.encrypt(file_chunk, self.hosts[destip])
+                    #encrypted_chunk = encryption.encrypt(file_chunk, self.hosts[destip])
 
-                    chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
+                    chunk_descriptor = ('chunk', start, end, file_chunk, filereq)
                     self.gossip_queue.append((destip, chunk_descriptor))
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
@@ -190,7 +190,7 @@ class GossipServer:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
-            s.send(data)
+            s.send(encryption.encrypt(data, self.hosts[host]))
         #except Exception as e:
         #    print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
