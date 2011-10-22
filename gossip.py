@@ -189,9 +189,10 @@ class GossipServer:
                     tag, destip, filename, mip = filereq
 
                     file_chunk = self.filemanager.find_chunk('files/' + filename, start, end)
-                    encrypted_chunk = self.encrypt(file_chunk, self.hosts[destip])
-                    chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
-                    self.gossip_queue.append((destip, chunk_descriptor))
+                    if destip in self.hosts:
+                        encrypted_chunk = self.encrypt(file_chunk, self.hosts[destip])
+                        chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
+                        self.gossip_queue.append((destip, chunk_descriptor))
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
 
