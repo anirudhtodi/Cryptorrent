@@ -106,8 +106,8 @@ class GossipServer:
         print "Gossip Server Started..."
 
 
-    def encrypt(self, msg):
-        return rsa.encrypt(msg, self.pubkey)
+    def encrypt(self, msg, key):
+        return rsa.encrypt(msg)
 
     def decrypt(self, msg):
         return rsa.decrypt(msg, self.privkey)
