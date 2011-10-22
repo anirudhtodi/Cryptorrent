@@ -112,7 +112,7 @@ class BackupClientThread(threading.Thread):
             #    print "Home server is not available at this time: ", e, HOST, PORT
             #    break
             #print "Hosts received from backup server:", Bootstrapper.hosts
-            time.sleep(15)
+            time.sleep(2)
 
 ######################
 ### INITIALIZATION ###
@@ -121,8 +121,7 @@ class BackupClientThread(threading.Thread):
 class Bootstrapper:
     hosts = {}
     #myip = urlopen('http://whatismyip.org/').read()
-    #myip = socket.gethostbyname(socket.gethostname())
-    myip = "172.23.120.80"
+    myip = socket.gethostbyname(socket.gethostname())
 
     def __init__(self, pkey):
         self.pkey = pkey
