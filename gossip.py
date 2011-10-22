@@ -136,10 +136,10 @@ class GossipServer:
         while True:
             if msg == '':
                 break
-            decrypt.append(rsa.decrypt(msg[:115], pemkey))
+            decrypt.append(rsa.decrypt(msg[:115], self.privkey))
             msg = msg[:115]
 
-        return ''.join(decrypt), self.privkey
+        return ''.join(decrypt)
 
     def process_gossip(self, data):
         print "GOSSIP:", data
@@ -233,7 +233,7 @@ class GossipServer:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
-            s.send(data, self.hosts[host])
+            s.send(data)
         #except Exception as e:
         #    print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
