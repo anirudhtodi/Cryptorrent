@@ -52,6 +52,7 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
+        print "LINE REC:", line
         try:
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
         except Exception as e:
@@ -114,9 +115,6 @@ class GossipServer:
 
 
     def encrypt(self, msg, key):
-        #os.system("touch tempkey.pem")
-        #f = open('tempkey.pem', 'w')
-        #f.write(key)
         msg = str(msg)[:]
         key = key[10:-1]
         n, e = key.split(', ')
