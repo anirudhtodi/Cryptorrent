@@ -92,16 +92,16 @@ class BackupClientThread(threading.Thread):
         print "No clients located, attempting to contact backup server...."
         while True:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            try:
-                s.connect((HOST, PORT))
-                s.send("GIMMEHOSTS %s" % self.pkey)
-                data = json.loads(s.recv(1024))
-                for datum in data:
-                    if datum != Bootstrapper.myip:
-                        Bootstrapper.hosts[datum] = data[datum]
-            except Exception as e:
-                print "Home server is not available at this time: ", e, HOST, PORT
-                break
+            #try:
+            s.connect((HOST, PORT))
+            s.send("GIMMEHOSTS %s" % self.pkey)
+            data = json.loads(s.recv(1024))
+            for datum in data:
+                if datum != Bootstrapper.myip:
+                    Bootstrapper.hosts[datum] = data[datum]
+            #except Exception as e:
+            #    print "Home server is not available at this time: ", e, HOST, PORT
+            #    break
             #print "Hosts received from backup server:", Bootstrapper.hosts
             time.sleep(15)
 

@@ -27,14 +27,15 @@ def dict_convert(dic, item):
 def dict_unconvert(dic):
     newdic = {}
     for key, val in dic.items():
-        item = tuple(json.loads(key))
+        item = json.loads(key)
+        if item[0] == 'chunk':
+            item[3] = self.gossiper.decrypt(loaded_key[3])
         for i in range(len(item)):
             if type(item[i]) == type([]):
-                temp = list(item)
-                temp[i] = tuple(temp[i])
-                item = tuple(temp)
-        newdic[item] = val
+                item[i] = tuple(item[i])
+        newdic[tuple(item)] = val
     return newdic
+
 
 
 class NodeServer(LineReceiver, threading.Thread):
@@ -58,8 +59,13 @@ class NodeServer(LineReceiver, threading.Thread):
         except Exception as e:
             print "Unable to load json data due to exception: %s" % e
             try:
-                decr = self.gossiper.decrypt(line)
-                self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
+
+                item = dict_unconvert(json.loads(decr))
+                
+
+
+                #decr = self.gossiper.decrypt(line)
+                #self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
             except Exception as e2:
                 print "EXCEPTION: %s Unable to receive gossip data." % e2
 
@@ -310,11 +316,18 @@ def rand_string():
 
 
 if __name__ == "__main__":
-    encryption.make_key()
-    for i in xrange(1000):
-        s = rand_string()
-        e = GossipServer.encrypt(s, 123)
-        r = GossipServer.decrypt(e)
-        assert s != e and e != r and s == e
-        print i,
-        if i % 20 == 0: print
+    #encryption.make_key()
+    #for i in xrange(1000):
+    #    s = rand_string()
+    #    e = GossipServer.encrypt(s, 123)
+    #    r = GossipServer.decrypt(e)
+    #    assert s != e and e != r and s == e
+    #    print i,
+    #    if i % 20 == 0: print
+
+
+    a = {('ed', (1, 2, 3), 'fred') : 100, ('chunk', 1, (2, 3), 'cc') : 100}
+    b = dict_convert(a, None)
+    c = json.dumps(b)
+    w = dict_unconvert(json.loads(c))
+    print w
