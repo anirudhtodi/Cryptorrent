@@ -3,7 +3,7 @@ import json
 import threading
 import socket
 from filemanager import FileManager
-#from encryption import Encryptor
+from encryption
 from random import choice
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
@@ -86,6 +86,8 @@ class GossipServer:
         NodeServer.gossiper = self
         self.server.start()
         self.filemanager = FileManager()
+        self.file_lock = threading.RLock()
+
         self.manager = ManagerNode(self)
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
@@ -115,13 +117,20 @@ class GossipServer:
                     print "RECEIVED CHUNK"
                     tag, start, end, data, filereq = item
                     tag, destip, filename, mip = filereq
-                    self.filemanager.receive_chunk('files/' + filename, start, end, data)
+                    decrypted_data = encryption.decrypt(data)
+                    self.file_lock.acquire()
+                    self.filemanager.receive_chunk('files/' + filename, start, end, decrypted_data)
+                    self.file_lock.release()
                 elif item[0] == 'send_chunk':
                     print "RECEIVED REQUEST FOR CHUNK"
                     tag, dest_ip, start, end, filereq = item
                     tag, destip, filename, mip = filereq
-                    chunk = ('chunk', start, end, self.filemanager.find_chunk('files/' + filename, start, end), filereq)
-                    self.gossip_queue.append((destip, chunk))
+                    
+                    file_chunk = self.filemanager.find_chunk('files/' + filename, start, end)
+                    encrypted_chunk = encryption.encrypt(file_chunk, self.hosts[destip])
+
+                    chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
+                    self.gossip_queue.append((destip, chunk_descriptor))
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
 
