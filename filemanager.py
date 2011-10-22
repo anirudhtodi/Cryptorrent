@@ -53,20 +53,20 @@ class FileManager:
             return None
 
     def receive_chunk(self, file_name, start_byte, finish_byte, chunk):
-        if file_name not in file_write_progress:
-            file_write_progress[file_name] = 0
-        progress = file_write_progress[file_name]
+        if file_name not in self.file_write_progress:
+            self.file_write_progress[file_name] = 0
+        progress = self.file_write_progress[file_name]
         if start_byte == progress:
             f = open(file_name, "ab")
             f.write(chunk)
             progress = finish_byte + 1
-            while ((file_name, progress) in cached_chunks):
-                f.write(cached_chunks[(file_name, progress)][0])
-                progress = cached_chunks[(file_name, progress)][1] + 1
+            while ((file_name, progress) in self.cached_chunks):
+                f.write(self.cached_chunks[(file_name, progress)][0])
+                progress = self.cached_chunks[(file_name, progress)][1] + 1
             f.close()
         else:
-            cached_chunks[(file_name, chunk_number)] = (chunk, finish_byte)
-        file_write_progress[file_name] = progress
+            self.cached_chunks[(file_name, chunk_number)] = (chunk, finish_byte)
+        self.file_write_progress[file_name] = progress
         
 
 # a = Find_Chunk()
