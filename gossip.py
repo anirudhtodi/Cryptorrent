@@ -3,7 +3,7 @@ import json
 import threading
 import socket
 from filemanager import FileManager
-from encryption
+import encryption
 from random import choice
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
@@ -82,6 +82,7 @@ class GossipServer:
     """
     
     def __init__(self, bootstrapper):
+        encryption.make_key()
         self.server = NodeServer()
         NodeServer.gossiper = self
         self.server.start()
@@ -196,7 +197,7 @@ class GossipServer:
 
 
 class ManagerNode(GossipServer):
-    chunk_size = 512
+    chunk_size = 1024
     files_to_process = {}
     
     def __init__ (self, gossiper):
