@@ -135,7 +135,7 @@ class GossipServer:
                          else '0' + hex(c)[2:]) for c in expand])
 
     @classmethod
-    def decrypt(self, msg, privkey):
+    def decrypt(self, msg):
         msg = str(msg)
         result = []
         for i in xrange(0, len(msg), 2):
@@ -314,7 +314,7 @@ if __name__ == "__main__":
     for i in xrange(1000):
         s = rand_string()
         e = GossipServer.encrypt(s, 123)
-        r = GossipServer.decrypt(e, 456)
+        r = GossipServer.decrypt(e)
         assert s != e and e != r and s == e
         print i,
         if i % 20 == 0: print
