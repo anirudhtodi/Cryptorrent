@@ -58,6 +58,8 @@ class GossipServer:
         ('chunk', {destination_ip}, {start}, {end}, {data}, filereq, {hop-ttl})
       Has File - 
         ('has_file', {source_ip}, {filesize}, filereq, {hop_ttl})
+      File Chunk - 
+        ('file_chunk, {filesize}, {start}, {end}, {data}, filereq, {hop_ttl}'
     """
     
     def __init__(self, bootstrapper):
@@ -72,7 +74,8 @@ class GossipServer:
     def process_gossip(self, data):
         for item, ttl in data.items():
             if item not in self.gossip:
-                self.gossip[item] = ttl
+                self.add_gossip(item, ttl)
+                #FIX INTERIOE ttl on item before adding
                 if item[0] == 'filereq':
                     ### manager server stuff
                     file_offer = self.gen_file_offer(item)
@@ -87,6 +90,10 @@ class GossipServer:
                 elif item[0] == 'has_file':
                     pass
 
+    def add_gossip(self, item, ttl):
+        
+        self.gossip[item] = ttl
+
     def gen_file_offer(self, item):
         name, dest_ip, filename, manager_ip, hope_ttl = item
         filesize = self.file_manager.find_file(filname):
@@ -95,6 +102,8 @@ class GossipServer:
         return None
 
     def init_file_request(self, filename):
+        manager = choose_random_host()
+        self.gossip_queue.append(manager)
         filereq = ('filreq', self.bootstrapper.myip, filename, manager, 255)
         self.gossip[filereq] = 100
 
@@ -120,7 +129,10 @@ class GossipServer:
         return choice(host_list)
 
     def gossip(self):
-        host = self.choose_random_host()
+        if len(self.gossip_queue) > 0:
+            host = self.gossip_queue.pop(0)
+        else:
+            host = self.choose_random_host()
         if not host:
             return
         self.send(host)
