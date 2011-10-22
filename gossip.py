@@ -63,6 +63,7 @@ def decrypt(msg):
 class NodeServer(LineReceiver, threading.Thread):
     hosts = set()
     gossiper = None
+    cache = ''
 
     def __init__(self):
         threading.Thread.__init__(self)
@@ -76,7 +77,16 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
+        if line[-1] != '}':
+            cache += line
+            return
+        elif cache != '':
+            cache += line
+            line = cache
+            cache = ''
+            self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
+        else:
+            self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
 
     def lineReceived(self, line):
          pass
