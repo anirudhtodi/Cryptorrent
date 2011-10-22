@@ -1,4 +1,5 @@
 import signal
+import json
 from encryption import Encryptor
 from random import host
 from twisted.internet.protocol import Factory, Protocol
@@ -9,12 +10,13 @@ from twisted.protocols.basic import LineReceiver
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 
-def process_socket_data(line):
-    pass
-
-
 class NodeServer(LineReceiver, threading.Thread):
     hosts = set()
+
+    def __init__(self, gossiper):
+        threading.Thread.__init__(self)
+        self.gossiper = gossiper
+
 
     def run(self):
         reactor.listenTCP(7060, ScaleFactory())
@@ -25,7 +27,7 @@ class NodeServer(LineReceiver, threading.Thread):
 
     def dataReceived(self, line):
         data = process_socket_data(line)
-        GossipServer.process_gossip(data)
+        self.gossiper.process_gossip(json.loads(data))
         output_data = self.output_data()
         self.transport.write(output_data)
         
@@ -56,14 +58,23 @@ class GossipServer:
     time_interval = 3
     
     def __init__(self, bootstrapper):
-        self.server = NodeServer()
+        self.server = NodeServer(self)
         self.server.start()
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
         self.gossip = {}
 
+    def process_gossip(self, data):
+        for item, ttl in data.items():
+            if item[0] == 'filereq':
+                pass
+            elif item[0] == 'chunk':
+                pass
+            elif item[0] == '':
+                pass
+
     def init_file_request(self, filename):
-        filereq = ('filreq', self.bootstrapper.myip, filename, 'no-manager')
+        filereq = ('filreq', self.bootstrapper.myip, filename, manager)
         self.gossip[filereq] = 100
 
     def timed_gossip(self):
