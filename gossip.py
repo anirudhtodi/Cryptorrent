@@ -58,8 +58,6 @@ class GossipServer:
         ('chunk', {destination_ip}, {start}, {end}, {data}, filereq, {hop-ttl})
       Has File - 
         ('has_file', {source_ip}, {filesize}, filereq, {hop_ttl})
-      File Chunk - 
-        ('file_chunk, {filesize}, {start}, {end}, {data}, filereq, {hop_ttl}'
     """
     
     def __init__(self, bootstrapper):
@@ -74,28 +72,22 @@ class GossipServer:
     def process_gossip(self, data):
         for item, ttl in data.items():
             if item not in self.gossip:
-                self.add_gossip(item, ttl)
-                #FIX INTERIOE ttl on item before adding
                 if item[0] == 'filereq':
-                    ### manager server stuff
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
                         self.gossip[file_offer] = 10 + len(self.gossip_queue)
                         manager_ip = item[3]
                         self.gossip_queue.append(manager_ip)                  
                 elif item[0] == 'chunk':
-                    pass
+                    self.
                 elif item[0] == 'send_chunk':
-                    pass
+                    pass  #must add to gossip
                 elif item[0] == 'has_file':
-                    pass
-
-    def add_gossip(self, item, ttl):
-        
-        self.gossip[item] = ttl
+                    self.file_manager.manage(item)
 
     def gen_file_offer(self, item):
-        name, dest_ip, filename, manager_ip, hope_ttl = item
+        name, dest_ip, filename, manager_ip, hop_ttl = item
+        self.gossip[(name, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
         filesize = self.file_manager.find_file(filname):
         if filesize != None:
             return ('has_file', self.bootstrapper.myip, filesize, item, 1)
