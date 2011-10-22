@@ -49,6 +49,7 @@ class GossipServer:
     Possible Gossip Information:
       Manager Request - 
       File Request - 
+        ('filereq', {dest-ip}, {filename}, {manager-ip})
       
     """
 
@@ -60,6 +61,10 @@ class GossipServer:
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
         self.gossip = {}
+
+    def init_file_request(self, filename):
+        filereq = ('filreq', self.bootstrapper.myip, filename, 'no-manager')
+        self.gossip[filereq] = 100
 
     def timed_gossip(self):
         self.gossip()
