@@ -107,10 +107,16 @@ class GossipServer:
 
 
     def encrypt(self, msg, key):
-        return rsa.encrypt(str(msg), str(key))
+        #os.system("touch tempkey.pem")
+        #f = open('tempkey.pem', 'w')
+        #f.write(key)
+        key = key[10:-1]
+        n, e = key.split(', ')
+        pemkey = rsa.PublicKey(int(n) , int(e))
+        return rsa.encrypt(str(msg), pemkey)
 
     def decrypt(self, msg):
-        return rsa.decrypt(str(msg), str(self.privkey))
+        return rsa.decrypt(str(msg), self.privkey)
 
     def process_gossip(self, data):
         for item, ttl in data.items():

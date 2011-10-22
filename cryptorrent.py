@@ -9,6 +9,7 @@ from gossip import GossipServer
 
 pubkey, privkey = rsa.newkeys(1024)
 
+
 bs = Bootstrapper(pubkey)
 bs.bootstrap()
 
