@@ -18,7 +18,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 def dict_convert(dic, item):
     newdic = {}
     if item != None:
-        newdic[json.dumps(item)] = 100
+        newdic[json.dumps(str(item))] = 100
     for key, val in dic.items():
         newdic[json.dumps(key)] = val
     return newdic
@@ -52,13 +52,12 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        print "LINE REC:", line
         try:
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
         except Exception as e:
             print "Unable to load json data due to exception: %s" % e
             try:                
-                decr = self.gossiper.decrypt(str(line))
+                decr = self.gossiper.decrypt(line)
                 self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
             except Exception as e2:
                 print "EXCEPTION: %s Unable to receive gossip data." % e2
@@ -125,7 +124,7 @@ class GossipServer:
             if msg == '':
                 break
             crypt.append(rsa.encrypt(msg[:115], pemkey))
-            msg = msg[:115]
+            msg = msg[115:]
 
         return ''.join(crypt)
 
@@ -136,12 +135,11 @@ class GossipServer:
             if msg == '':
                 break
             decrypt.append(rsa.decrypt(msg[:115], self.privkey))
-            msg = msg[:115]
+            msg = msg[115:]
 
         return ''.join(decrypt)
 
     def process_gossip(self, data):
-        print "GOSSIP:", data
         for item, ttl in data.items():
             if item not in self.current_gossip:
                 self.current_gossip.add(item)
@@ -169,14 +167,16 @@ class GossipServer:
                     
                     file_chunk = self.filemanager.find_chunk('files/' + filename, start, end)
                     encrypted_chunk = self.encrypt(file_chunk, self.hosts[destip])
-                    
                     chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
                     self.gossip_queue.append((destip, chunk_descriptor))
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
 
     def send_chunk_request(self, req, ip):
-        self.gossip_queue.append((ip, req))
+        if ip == self.bootstrapper.myip:
+            self.process_gossip({req : 100})
+        else:
+            self.gossip_queue.append((ip, req))
 
 
     def gen_file_offer(self, item):
@@ -220,7 +220,6 @@ class GossipServer:
             item = None
         if not host:
             return
-        print 'Gossip:', host
         self.send(host, item)
 
     def gossip_data(self, item):
@@ -232,7 +231,7 @@ class GossipServer:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
-            s.send(data)
+            s.send(str(data))
         except Exception as e:
             print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
