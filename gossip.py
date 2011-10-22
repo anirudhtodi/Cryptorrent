@@ -25,6 +25,7 @@ def dict_convert(dic, item):
     return newdic
 
 def dict_unconvert(dic):
+    print "DCT UNCONCERT INPUT:", dic
     newdic = {}
     for key, val in dic.items():
         item = json.loads(key)
