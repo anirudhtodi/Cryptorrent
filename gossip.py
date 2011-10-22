@@ -74,7 +74,7 @@ class NodeServer(LineReceiver, threading.Thread):
 
     def connectionMade(self):
         #client = self.transport.getPeer().host
-        pass
+        self.setLineMode()
 
     def dataReceived(self, line):
         if line[-1] != '}':
@@ -89,7 +89,7 @@ class NodeServer(LineReceiver, threading.Thread):
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
 
     def lineReceived(self, line):
-         pass
+        print "LLLLLLLLLLLLLLLLLL", line
 
     def rawDataReceived(self, data):
          print "DDDDDDDDDDDDDDDDDDDDD", data
