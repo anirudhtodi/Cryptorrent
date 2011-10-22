@@ -228,8 +228,9 @@ class GossipServer:
         pass
 
     def timed_hostcheck(self):
-        for ip, pkey in self.bootstrapper.hosts.items():
-            self.hosts[ip] = pkey
+        self.hosts = self.bootstrapper.hosts
+        #for ip, pkey in self.bootstrapper.hosts.items():
+        #    self.hosts[ip] = pkey
         threading.Timer(3, self.timed_hostcheck, ()).start()
 
     def choose_random_host(self):
