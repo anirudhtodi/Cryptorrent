@@ -2,6 +2,7 @@ import signal
 import json
 import threading
 import socket
+import rsa
 from filemanager import FileManager
 import encryption
 from random import choice
@@ -51,8 +52,7 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        print "LINE:", line
-        decr =  encryption.decrypt(str(line))
+        decr = self.decrypt(str(line))
         print "DECR", decr
         self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
         
@@ -84,12 +84,15 @@ class GossipServer:
         ('has_file', {source_ip}, {filesize}, filereq)
     """
     
-    def __init__(self, bootstrapper):
+    def __init__(self, bootstrapper, pubkey, privkey):
         self.server = NodeServer()
         NodeServer.gossiper = self
         self.server.start()
         self.filemanager = FileManager()
         self.file_lock = threading.RLock()
+
+        self.pubkey = pubkey
+        self.privkey = privkey
 
         self.manager = ManagerNode(self)
         self.bootstrapper = bootstrapper
@@ -101,6 +104,13 @@ class GossipServer:
         self.timed_gossip()
         self.timed_hostcheck()
         print "Gossip Server Started..."
+
+
+    def encrypt(self, msg):
+        return rsa.encrypt(msg, self.pubkey)
+
+    def decrypt(self, msg):
+        return rsa.decrypt(msg, self.privkey)
 
     def process_gossip(self, data):
         for item, ttl in data.items():
@@ -192,7 +202,7 @@ class GossipServer:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
-            s.send(encryption.encrypt(data, self.hosts[host]))
+            s.send(self.encrypt(data, self.hosts[host]))
         #except Exception as e:
         #    print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
