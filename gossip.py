@@ -141,8 +141,8 @@ class GossipServer:
         while True:
             if msg == '':
                 break
-            decrypt.append(rsa.decrypt(msg[:115], self.privkey))
-            msg = msg[115:]
+            decrypt.append(rsa.decrypt(msg[:128], self.privkey))
+            msg = msg[128:]
 
         return ''.join(decrypt)
 
