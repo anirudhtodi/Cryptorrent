@@ -31,7 +31,6 @@ def dict_unconvert(dic):
                 temp = list(item)
                 temp[i] = tuple(temp[i])
                 item = tuple(temp)
-        print type(item), item
         newdic[item] = val
     return newdic
     
@@ -209,6 +208,7 @@ class ManagerNode(GossipServer):
         self.files_to_process[filereq].append(source_ip)
 
     def process_chunk_requests(self):
+        print self.files_to_process
         for filereq_to_process, filereq_info in self.files_to_process.items():
             amount_processed = filereq_info[0]
             filesize = filereq_info[1]
@@ -223,4 +223,4 @@ class ManagerNode(GossipServer):
                                  start_byte_number, end_byte_number,
                                  filereq_to_process, 1)
                 self.gossiper.send_chunk_request(chunk_request, file_containing_node)
-            
+        threading.Timer(5, self.process_chunk_requests, ()).start()        
