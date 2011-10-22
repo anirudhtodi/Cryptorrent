@@ -25,17 +25,11 @@ def dict_convert(dic, item):
     return newdic
 
 def dict_unconvert(dic):
-    print "DCT UNCONCERT INPUT:", dic
     newdic = {}
     for key, val in dic.items():
-        print "PREKEY:", key
         item = json.loads(key)
-        print "POSTKEY", item
         if item[0] == 'chunk':
             item[3] = decrypt(item[3])
-
-        if type(item) == type(''):
-            print "AAAAAAAAAAAAAAAHHHHH", item
 
         for i in range(len(item)):
             if type(item[i]) == type([]):
