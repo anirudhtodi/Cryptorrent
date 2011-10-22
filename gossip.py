@@ -59,8 +59,6 @@ class GossipServer:
       Has File - 
         ('has_file', {source_ip}, {filesize}, filereq, {hop_ttl})
     """
-
-    time_interval = 3
     
     def __init__(self, bootstrapper):
         self.server = NodeServer(self)
@@ -102,7 +100,13 @@ class GossipServer:
 
     def timed_gossip(self):
         self.gossip()
-        threading.Timer(self.time_interval, self.timed_gossip, ()).start()
+        threading.Timer(3, self.timed_gossip, ()).start()
+
+    def timed_lease_check(self):
+        for item, ttl in self.gossip.items():
+            if ttl == 1:
+                pass
+        threading.Timer(30, self.timed_lease_check, ()).start()
 
     def timed_hostcheck(self):
         for ip, pkey in self.bootstrapper.hosts.items():
