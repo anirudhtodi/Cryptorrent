@@ -24,7 +24,7 @@ def dict_convert(dic, item):
         newdic[json.dumps(key)] = val
     return newdic
 
-def dict_unconvert(dic):
+def dict_unconvert(dic, self):
     print "DCT UNCONCERT INPUT:", dic
     newdic = {}
     for key, val in dic.items():
@@ -32,7 +32,7 @@ def dict_unconvert(dic):
         item = json.loads(key)
         print "POSTKEY", item
         if item[0] == 'chunk':
-            item[3] = self.gossiper.decrypt(loaded_key[3])
+            item[3] = decrypt(loaded_key[3])
 
         if type(item) == type(''):
             print "AAAAAAAAAAAAAAAHHHHH", item
@@ -42,6 +42,27 @@ def dict_unconvert(dic):
                 item[i] = tuple(item[i])
         newdic[tuple(item)] = val
     return newdic
+
+
+
+def decrypt(self, msg):
+    msg = str(msg)
+    result = []
+    for i in xrange(0, len(msg), 2):
+        result.append(chr(int(msg[i:i+2], 16)))
+    data = ''.join(result)
+
+    start = 0
+    block_sz = 256
+    result = []
+    while start < len(data) - 1:
+        block = data[start: start + block_sz]
+        p = Popen(['openssl', 'rsautl', '-decrypt', '-inkey',
+                   'key.pem'], stdin=PIPE, stdout=PIPE)
+        out, err = p.communicate(block)
+        result.append(out)
+        start += block_sz
+    return ''.join(result)
 
 
 
@@ -133,25 +154,7 @@ class GossipServer:
         return ''.join([(hex(c)[2:] if len(hex(c)) == 4
                          else '0' + hex(c)[2:]) for c in expand])
 
-    @classmethod
-    def decrypt(self, msg):
-        msg = str(msg)
-        result = []
-        for i in xrange(0, len(msg), 2):
-            result.append(chr(int(msg[i:i+2], 16)))
-        data = ''.join(result)
 
-        start = 0
-        block_sz = 256
-        result = []
-        while start < len(data) - 1:
-            block = data[start: start + block_sz]
-            p = Popen(['openssl', 'rsautl', '-decrypt', '-inkey',
-                       'key.pem'], stdin=PIPE, stdout=PIPE)
-            out, err = p.communicate(block)
-            result.append(out)
-            start += block_sz
-        return ''.join(result)
 
     def process_gossip(self, data):
         #print "PROCESS:", data
