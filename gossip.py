@@ -58,17 +58,6 @@ class NodeServer(LineReceiver, threading.Thread):
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
         except Exception as e:
             print "Unable to load json data due to exception: %s" % e
-            try:
-
-                item = dict_unconvert(json.loads(decr))
-                
-
-
-                #decr = self.gossiper.decrypt(line)
-                #self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
-            except Exception as e2:
-                print "EXCEPTION: %s Unable to receive gossip data." % e2
-
 
     def lineReceived(self, line):
          pass
@@ -161,6 +150,7 @@ class GossipServer:
         return ''.join(result)
 
     def process_gossip(self, data):
+        print "PG", data
         for item, ttl in data.items():
             if item not in self.current_gossip:
                 self.current_gossip.add(item)
@@ -241,6 +231,7 @@ class GossipServer:
             item = None
         if not host:
             return
+        print "GOSSIP", host
         self.send(host, item)
 
     def gossip_data(self, item):

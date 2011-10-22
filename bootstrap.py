@@ -96,10 +96,15 @@ class BackupClientThread(threading.Thread):
             s.connect((HOST, PORT))
             s.send("GIMMEHOSTS %s" % self.pkey)
             data = ''
+
+            print "YYYYYYYYYYYYY"
+
             while True:
                 data += s.recv(1024)
                 if not data: break
             data = json.loads(data)
+
+            print "XXXXXXXXXXXX"
 
             for datum in data:
                 if datum != Bootstrapper.myip:
