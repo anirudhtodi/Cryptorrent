@@ -65,7 +65,7 @@ class FileManager:
                 progress = self.cached_chunks[(file_name, progress)][1] + 1
             f.close()
         else:
-            self.cached_chunks[(file_name, chunk_number)] = (chunk, finish_byte)
+            self.cached_chunks[(file_name, start_byte)] = (chunk, finish_byte)
         self.file_write_progress[file_name] = progress
         
 
