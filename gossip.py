@@ -54,12 +54,13 @@ class NodeServer(LineReceiver, threading.Thread):
     def dataReceived(self, line):
         try:
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
-        except:
-            try:
+        except Exception as e:
+            print "Unable to load json data due to exception: %s" % e
+            try:                
                 decr = self.gossiper.decrypt(str(line))
                 self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
-            except:
-                pass
+            except Exception as e2:
+                print "EXCEPTION: %s Unable to receive gossip data." % e2
         
         
     def lineReceived(self, line):
@@ -169,8 +170,8 @@ class GossipServer:
                     tag, destip, filename, mip = filereq
                     
                     file_chunk = self.filemanager.find_chunk('files/' + filename, start, end)
-                    encrypted_chunk = encryption.encrypt(file_chunk, self.hosts[destip])
-
+                    encrypted_chunk = self.encrypt(file_chunk, self.hosts[destip])
+                    
                     chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
                     self.gossip_queue.append((destip, chunk_descriptor))
                 elif item[0] == 'has_file':
@@ -228,14 +229,14 @@ class GossipServer:
         return json.dumps(dict_convert(self.gossip_dict, item))
 
     def send(self, host, item):
-        #try:
+        try:
             data = self.gossip_data(item)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
             s.send(data)
-        #except Exception as e:
-        #    print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
+        except Exception as e:
+            print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
 
 class ManagerNode(GossipServer):
