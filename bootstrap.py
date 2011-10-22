@@ -100,7 +100,7 @@ class BackupClientThread(threading.Thread):
             while True:
                 x = s.recv(2048)
                 print "X:", len(x), x
-                if not x:
+                if x[-1] == '}':
                     data += x
                     print "-----------------"
                     break
