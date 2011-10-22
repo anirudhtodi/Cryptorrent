@@ -1,5 +1,6 @@
 import signal
 import json
+import copy
 from filemanager import FileManager
 from encryption import Encryptor
 from random import host
@@ -55,7 +56,7 @@ class GossipServer:
       Send Chunk -
         ('send_chunk', {destination_ip}, {start}, {end}, filereq, {hop-ttl})
       Chunk - 
-        ('chunk', {destination_ip}, {start}, {end}, {data}, filereq, {hop-ttl})
+        ('chunk', {start}, {end}, {data}, filereq, {hop-ttl})
       Has File - 
         ('has_file', {source_ip}, {filesize}, filereq, {hop_ttl})
     """
@@ -64,6 +65,7 @@ class GossipServer:
         self.server = NodeServer(self)
         self.server.start()
         self.filemanager = FileManager()
+        self.manager = Manager()
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
         self.gossip_queue = []
@@ -75,27 +77,33 @@ class GossipServer:
                 if item[0] == 'filereq':
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
-                        self.gossip[file_offer] = 10 + len(self.gossip_queue)
                         manager_ip = item[3]
-                        self.gossip_queue.append(manager_ip)                  
+                        self.gossip_queue.append(manager_ip, file_offer)            
                 elif item[0] == 'chunk':
-                    self.
+                    tag, start, end, data, filereq, hopttl = item
+                    tag, destip, filename, mip, hopttl = filreq
+                    self.filemanager.receive_chunk(filename, start, finish, data)
                 elif item[0] == 'send_chunk':
-                    pass  #must add to gossip
+                    tag, dest_ip, start, end, filereq, hopttl = item
+                    tag, destip, filename, mip, hopttl = filreq
+                    chunk = ('chunk', start, end, self.filemanager.find_chunk(filename, start, end), filereq, 1)
+                    self.gossip_queue.append(destip, chunk)
                 elif item[0] == 'has_file':
-                    self.file_manager.manage(item)
+                    self.manager.manage(item)
+
+    def send_chunk_request(self, req, ip):
+        self.gossip_queue.append(ip, req)
 
     def gen_file_offer(self, item):
-        name, dest_ip, filename, manager_ip, hop_ttl = item
+        tag, dest_ip, filename, manager_ip, hop_ttl = item
         self.gossip[(name, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
-        filesize = self.file_manager.find_file(filname):
+        filesize = self.file_manager.find_file(filname)
         if filesize != None:
             return ('has_file', self.bootstrapper.myip, filesize, item, 1)
         return None
 
     def init_file_request(self, filename):
         manager = choose_random_host()
-        self.gossip_queue.append(manager)
         filereq = ('filreq', self.bootstrapper.myip, filename, manager, 255)
         self.gossip[filereq] = 100
 
@@ -104,10 +112,8 @@ class GossipServer:
         threading.Timer(3, self.timed_gossip, ()).start()
 
     def timed_lease_check(self):
-        for item, ttl in self.gossip.items():
-            if ttl == 1:
-                pass
-        threading.Timer(30, self.timed_lease_check, ()).start()
+        #threading.Timer(30, self.timed_lease_check, ()).start()
+        pass
 
     def timed_hostcheck(self):
         for ip, pkey in self.bootstrapper.hosts.items():
@@ -122,18 +128,25 @@ class GossipServer:
 
     def gossip(self):
         if len(self.gossip_queue) > 0:
-            host = self.gossip_queue.pop(0)
+            host, item = self.gossip_queue.pop(0)
         else:
             host = self.choose_random_host()
+            item = None
         if not host:
             return
-        self.send(host)
+        self.send(host, item)
 
-    def gossip_data(self):
-        return json.dumps(self.gossip)
+    def gossip_data(self, item):
+        if item != None:
+            g = copy.deepcopy(self.gossip)
+            g[item] = 100
+            return json.dumps(g)
+        else:
+            return json.dumps(self.gossip)
 
-    def send(self, host):
-        data = self.gossip_data()
+    def send(self, host, item):
+        data = self.gossip_data(item)
+        
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(2)
         s.connect((host, 7060))
