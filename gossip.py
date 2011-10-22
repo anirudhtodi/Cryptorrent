@@ -93,6 +93,7 @@ class GossipServer:
     def process_gossip(self, data):
         for item, ttl in data.items():
             if item not in self.gossip_dict:
+                print "Processing Gossip:", item
                 if item[0] == 'filereq':
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
@@ -154,7 +155,6 @@ class GossipServer:
             item = None
         if not host:
             return
-        print "Gossiping with", host
         self.send(host, item)
 
     def gossip_data(self, item):
