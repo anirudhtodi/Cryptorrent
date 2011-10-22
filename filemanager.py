@@ -4,6 +4,9 @@ from gzip import GzipFile
 from StringIO import StringIO
 
 class FileManager:
+    file_write_progress = {}
+    cached_chunks = {}
+
     def find_chunk(self, file_name, start_byte_number, end_byte_number):
         # Open file
         f = open(file_name, 'rb')
@@ -48,6 +51,23 @@ class FileManager:
             return os.path.getsize(file_name)
         else:
             return None
+
+    def receive_chunk(self, file_name, chunk_number, chunk):
+        if file_name not in file_write_progress:
+            file_write_progress[file_name] = 0
+        progress = file_write_progress[file_name]
+        if chunk_number == progress:
+            f = open(file_name, "a")
+            f.write(chunk)
+            progress += 1
+            while ((file_name, progress) in cached_chunks):
+                f.write(cached_chunks[(file_name, progress)])
+                progress += 1
+            f.close()
+        else:
+            cached_chunks[(file_name, chunk_number)] = chunk
+        file_write_progress[file_name] = progress
+        
 
 # a = Find_Chunk()
 # compressed_chunk = a.find_chunk('test.txt', 1, 3)
