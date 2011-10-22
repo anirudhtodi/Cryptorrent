@@ -109,15 +109,33 @@ class GossipServer:
         #os.system("touch tempkey.pem")
         #f = open('tempkey.pem', 'w')
         #f.write(key)
+        msg = str(msg)[:]
         key = key[10:-1]
         n, e = key.split(', ')
         pemkey = rsa.PublicKey(int(n) , int(e))
-        return rsa.encrypt(str(msg), pemkey)
+
+        crypt = []
+        while True:
+            if msg == '':
+                break
+            crypt.append(rsa.encrypt(msg[:115], pemkey))
+            msg = msg[:115]
+
+        return ''.join(crypt)
 
     def decrypt(self, msg):
-        return rsa.decrypt(str(msg), self.privkey)
+        msg = str(msg)[:]
+        decrypt = []
+        while True:
+            if msg == '':
+                break
+            decrypt.append(rsa.decrypt(msg[:115], pemkey))
+            msg = msg[:115]
+
+        return ''.join(decrypt), self.privkey
 
     def process_gossip(self, data):
+        print "GOSSIP:", data
         for item, ttl in data.items():
             if item not in self.current_gossip:
                 self.current_gossip.add(item)
