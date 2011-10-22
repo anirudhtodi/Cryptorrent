@@ -31,21 +31,23 @@ class LoggingProtocol(LineReceiver):
 
     def connectionMade(self):
         client = self.transport.getPeer().host
-        t = datetime.datetime.utcnow()
-        if client != "127.0.0.1":
-            hosts[client] = time.mktime(t.timetuple())
-        self.factory.fp.write(client + '\t' + str(time.mktime(t.timetuple())))
         print "connection from", client #other options are port, type
         
 
     def dataReceived(self, line):
-        print self.transport.getPeer().host, "says", line
-        if line == "HERE":
+        client = self.transport.getPeer().host
+        print client, "says", line
+        linedata = line.split()
+        t = datetime.datetime.utcnow()
+        if client != "127.0.0.1":
+            hosts[client] = (linedata[1], time.mktime(t.timetuple()))
+
+        if linedata[0] == "HERE":
             self.transport.write("OK")
-        elif line == "GIMMEHOSTS":
+        elif linedata[0] == "GIMMEHOSTS":
             print hosts
             for host in hosts:
-                self.transport.write(host)
+                self.transport.write("%s %s" % (host, hosts[host][0]))
         else:
             self.transport.write("Invalid Message")
         self.factory.fp.write(line+'\n')
@@ -68,7 +70,7 @@ class LogfileFactory(Factory):
 def runCleanUp():
     bootable = []
     for host in hosts:
-        if(hosts[host] + TIMEOUT < time.mktime(datetime.datetime.utcnow().timetuple())):
+        if(hosts[host][1] + TIMEOUT < time.mktime(datetime.datetime.utcnow().timetuple())):
             bootable.append(host)
     for host in bootable:
         del hosts[host]
