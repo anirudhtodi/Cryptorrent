@@ -102,7 +102,7 @@ class GossipServer:
                         if manager_ip == self.bootstrapper.myip:
                             self.manager.manage(('has_file', self.bootstrapper.myip, file_offer, item, 1))
                         else:
-                            self.gossip_queue.append(manager_ip, file_offer)    
+                            self.gossip_queue.append((manager_ip, file_offer))
                 elif item[0] == 'chunk':
                     print "RECEIVED CHUNK"
                     tag, start, end, data, filereq, hopttl = item
@@ -113,12 +113,12 @@ class GossipServer:
                     tag, dest_ip, start, end, filereq, hopttl = item
                     tag, destip, filename, mip, hopttl = filereq
                     chunk = ('chunk', start, end, self.filemanager.find_chunk('files/' + filename, start, end), filereq, 1)
-                    self.gossip_queue.append(destip, chunk)
+                    self.gossip_queue.append((destip, chunk))
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
 
     def send_chunk_request(self, req, ip):
-        self.gossip_queue.append(ip, req)
+        self.gossip_queue.append((ip, req))
 
 
     def gen_file_offer(self, item):
