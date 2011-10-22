@@ -37,7 +37,7 @@ class MulticastServerUDP(DatagramProtocol):
         self.transport.joinGroup('224.0.1.123')
 
     def datagramReceived(self, datagram, address):
-        ip, pkey = datagram.split()
+        ip, pkey = datagram.split(None, 1)
         if ip != Bootstrapper.myip:
             Bootstrapper.hosts[ip] = pkey
             print "Bootstrap Server Hosts:....", Bootstrapper.hosts
