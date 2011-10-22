@@ -125,6 +125,7 @@ class GossipServer:
         return None
 
     def init_file_request(self, filename):
+        print "You requested:", filename
         manager = self.choose_random_host()
         filereq = ('filreq', self.bootstrapper.myip, filename, manager, 255)
         self.gossip_dict[filereq] = 100
@@ -156,6 +157,7 @@ class GossipServer:
             item = None
         if not host:
             return
+        print "Gossiping with", host
         self.send(host, item)
 
     def gossip_data(self, item):
