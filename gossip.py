@@ -108,7 +108,7 @@ class GossipServer:
                         print "\tHave File:", item
                         manager_ip = item[3]
                         if manager_ip == self.bootstrapper.myip:
-                            self.manager.manage(('has_file', self.bootstrapper.myip, file_offer, item))
+                            self.manager.manage(file_offer)
                         else:
                             self.gossip_queue.append((manager_ip, file_offer))
                 elif item[0] == 'chunk':
@@ -130,7 +130,7 @@ class GossipServer:
 
 
     def gen_file_offer(self, item):
-        tag, dest_ip, filename, manager_ip, hop_ttl = item
+        tag, dest_ip, filename, manager_ip = item
         self.gossip_dict[(tag, dest_ip, filename, manager_ip)] = 100
         filesize = self.filemanager.find_file('files/' + filename)
         if filesize != None:
@@ -204,21 +204,28 @@ class ManagerNode(GossipServer):
         if filereq not in self.files_to_process:
             print "Initializing managemt of:", filereq
             self.files_to_process[filereq] = [0, filesize]
-        self.files_to_process[filereq].apend(source_ip)
+        print "APPENDING", source_ip
+        self.files_to_process[filereq].append(source_ip)
 
     def process_chunk_requests(self):
+        print self.files_to_process
         for filereq_to_process, filereq_info in self.files_to_process.items():
             amount_processed = filereq_info[0]
             filesize = filereq_info[1]
-            for file_containing_node in filereq_info[2:]:
+            file_holders = filereq_info[2:]
+            for file_containing_node in file_holders:
                 start_byte_number = amount_processed
                 end_byte_number = amount_processed + self.chunk_size
+                print "NEW END BYTE:", end_byte_number
                 if end_byte_number > filesize:
                     end_byte_number = filesize
-                    del filereq_to_process[filereq_to_process]
+                    del self.files_to_process[filereq_to_process]
                 amount_processed = end_byte_number+1
+                print "APC", amount_processed
                 chunk_request = ('send_chunk', filereq_to_process[1],
                                  start_byte_number, end_byte_number,
                                  filereq_to_process)
                 self.gossiper.send_chunk_request(chunk_request, file_containing_node)
-        threading.Timer(5, self.process_chunk_requests, ()).start()        
+                print "FILESIZE:", filesize
+                self.files_to_process[filereq_to_process] = [amount_processed, filesize, file_holders]
+        threading.Timer(2, self.process_chunk_requests, ()).start()        
