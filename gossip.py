@@ -1,9 +1,11 @@
 import signal
 import json
 import copy
+import threading
+import socket
 from filemanager import FileManager
-from encryption import Encryptor
-from random import host
+#from encryption import Encryptor
+from random import choice
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
 from twisted.protocols.basic import LineReceiver
@@ -21,17 +23,15 @@ class NodeServer(LineReceiver, threading.Thread):
 
 
     def run(self):
-        reactor.listenTCP(7060, ScaleFactory())
+        reactor.listenTCP(7060, NodeFactory())
         #reactor.run(installSignalHandlers=0)
 
     def connectionMade(self):
         client = self.transport.getPeer().host
 
     def dataReceived(self, line):
-        data = process_socket_data(line)
-        self.gossiper.process_gossip(json.loads(data))
-        output_data = self.output_data()
-        self.transport.write(output_data)
+        self.gossiper.process_gossip(json.loads(line))
+        #self.transport.write(output_data)
         
     def lineReceived(self, line):
          pass
@@ -43,7 +43,7 @@ class NodeServer(LineReceiver, threading.Thread):
         self.hosts.add(host)
 
 class NodeFactory(Factory):
-    protocol = ScaleServer
+    protocol = NodeServer
 
 
 
@@ -81,11 +81,11 @@ class GossipServer:
                         self.gossip_queue.append(manager_ip, file_offer)            
                 elif item[0] == 'chunk':
                     tag, start, end, data, filereq, hopttl = item
-                    tag, destip, filename, mip, hopttl = filreq
-                    self.filemanager.receive_chunk(filename, start, finish, data)
+                    tag, destip, filename, mip, hopttl = filereq
+                    self.filemanager.receive_chunk(filename, start, end, data)
                 elif item[0] == 'send_chunk':
                     tag, dest_ip, start, end, filereq, hopttl = item
-                    tag, destip, filename, mip, hopttl = filreq
+                    tag, destip, filename, mip, hopttl = filereq
                     chunk = ('chunk', start, end, self.filemanager.find_chunk(filename, start, end), filereq, 1)
                     self.gossip_queue.append(destip, chunk)
                 elif item[0] == 'has_file':
@@ -96,14 +96,14 @@ class GossipServer:
 
     def gen_file_offer(self, item):
         tag, dest_ip, filename, manager_ip, hop_ttl = item
-        self.gossip[(name, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
-        filesize = self.file_manager.find_file(filname)
+        self.gossip[(tag, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
+        filesize = self.filemanager.find_file(filename)
         if filesize != None:
             return ('has_file', self.bootstrapper.myip, filesize, item, 1)
         return None
 
     def init_file_request(self, filename):
-        manager = choose_random_host()
+        manager = self.choose_random_host()
         filereq = ('filreq', self.bootstrapper.myip, filename, manager, 255)
         self.gossip[filereq] = 100
 
