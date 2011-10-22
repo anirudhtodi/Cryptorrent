@@ -214,8 +214,8 @@ class GossipServer:
     def init_file_request(self, filename):
         print "You requested:", filename
         manager = self.choose_random_host()
-
-        print "IIIIIIPPPPPPPPP:", self.bootstrapper.myip
+        while manager == self.bootstrapper.myip:
+            manager = self.choose_random_host()
 
         filereq = ('filereq', self.bootstrapper.myip, filename, manager)
         self.gossip_dict[filereq] = 100
