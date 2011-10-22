@@ -139,7 +139,7 @@ class GossipServer:
         data = str(msg)
 
         start = 0
-        block_sz = 244
+        block_sz = 200
         result = []
         fout = open("/tmp/pub-key.pem", 'w')
         fout.write(key)
