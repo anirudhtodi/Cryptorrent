@@ -120,7 +120,7 @@ class BackupClientThread(threading.Thread):
 
 class Bootstrapper:
     hosts = {}
-    myip = urlopen('http://whatismyip.org/').read()
+    #myip = urlopen('http://whatismyip.org/').read()
     myip = socket.gethostbyname(socket.gethostname())
 
     def __init__(self, pkey):

@@ -19,7 +19,7 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 def dict_convert(dic, item):
     newdic = {}
     if item != None:
-        newdic[json.dumps(str(item))] = 100
+        newdic[json.dumps(item)] = 100
     for key, val in dic.items():
         newdic[json.dumps(key)] = val
     return newdic
@@ -28,7 +28,9 @@ def dict_unconvert(dic):
     print "DCT UNCONCERT INPUT:", dic
     newdic = {}
     for key, val in dic.items():
+        print "PREKEY:", key
         item = json.loads(key)
+        print "POSTKEY", item
         if item[0] == 'chunk':
             item[3] = self.gossiper.decrypt(loaded_key[3])
 
@@ -207,6 +209,9 @@ class GossipServer:
     def init_file_request(self, filename):
         print "You requested:", filename
         manager = self.choose_random_host()
+
+        print "IP:", sef.bootstrapper.myip
+
         filereq = ('filereq', self.bootstrapper.myip, filename, manager)
         self.gossip_dict[filereq] = 100
 
