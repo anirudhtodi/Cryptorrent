@@ -26,6 +26,9 @@ def dict_unconvert(dic):
     newdic = {}
     for key, val in dic.items():
         item = tuple(json.loads(key))
+        for i in range(len(item)):
+            if type(item[i]) == type([]):
+                item[i] = tuple(item[i])
         print type(item), item
         newdic[item] = val
     return newdic
