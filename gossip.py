@@ -112,7 +112,7 @@ class GossipServer:
         self.timed_hostcheck()
         print "Gossip Server Started..."
 
-
+    @classmethod
     def encrypt(self, msg, key):
         msg = str(msg)[:]
         key = key[10:-1]
@@ -123,28 +123,33 @@ class GossipServer:
         while True:
             if msg == '':
                 break
-            crypt.append(rsa.encrypt(msg[:115], pemkey))
-            msg = msg[115:]
+            crypt.append(rsa.encrypt(msg[:114], pemkey))
+            msg = msg[114:]
+        print repr(''.join(crypt))
         expand = []
         for c in crypt:
             for char in c:
                 expand.append(ord(char))
         print "Encrypted:", ''.join([hex(c)[2:] for c in expand])
-        return ''.join([hex(c)[2:] for c in expand])
+        return ''.join([(hex(c)[2:] if len(hex(c)) == 4
+                        else '0' + hex(c)[2:]) for c in expand])
 
-    def decrypt(self, msg):
+    @classmethod
+    def decrypt(self, msg, privkey):
         msg = str(msg)[:]
         print "Attempting to decrypt:", msg
         result = []
-        for i in xrange(len(msg), 2):
+        for i in xrange(0, len(msg), 2):
             result.append(chr(int(msg[i:i+2], 16)))
         msg = ''.join(result)
+        print repr(msg)
         decrypt = []
         while True:
             if msg == '':
                 break
-            decrypt.append(rsa.decrypt(msg[:128], self.privkey))
+            decrypt.append(rsa.decrypt(msg[:128], privkey))
             msg = msg[128:]
+        print ''.join(decrypt)
         return ''.join(decrypt)
 
     def process_gossip(self, data):
@@ -291,3 +296,21 @@ class ManagerNode(GossipServer):
                 if not finished:
                     self.files_to_process[filereq_to_process] = newval
         threading.Timer(2, self.process_chunk_requests, ()).start()
+def rand_string():
+    import random
+    import string
+    s = ""
+    for i in xrange(1, random.randrange(1, 5)):
+        s += random.choice(string.lowercase)
+    s *= random.randint(2, 124)
+    return s
+
+
+if __name__ == "__main__":
+    pubkey, privkey = rsa.newkeys(1024)
+    for i in xrange(1000):
+        s = rand_string()
+        e = GossipServer.encrypt(s, "%d, %d" % (pubkey.n, pubkey.e))
+        r = GossipServer.decrypt(e, privkey)
+        #assert s != e and e != r and s == e
+        break
