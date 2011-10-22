@@ -154,6 +154,8 @@ class GossipServer:
         return ''.join(result)
 
     def process_gossip(self, data):
+        #print "PROCESS:", data
+
         for item, ttl in data.items():
             if item not in self.current_gossip:
                 self.current_gossip.add(item)
@@ -292,6 +294,7 @@ class ManagerNode(GossipServer):
                 chunk_request = ('send_chunk', filereq_to_process[1],
                                  start_byte_number, end_byte_number,
                                  filereq_to_process)
+
                 self.gossiper.send_chunk_request(chunk_request, file_containing_node)
                 print "SENDING CHUNK:", start_byte_number, end_byte_number
                 newval = [amount_processed, filesize] + file_holders

@@ -99,8 +99,10 @@ class BackupClientThread(threading.Thread):
 
             while True:
                 x = s.recv(2048)
-                if len(x) < 2047:
+                print "X:", len(x), x
+                if not x:
                     data += x
+                    print "-----------------"
                     break
                 data += x
             data = json.loads(data)
