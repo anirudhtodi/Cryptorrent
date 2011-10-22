@@ -43,10 +43,9 @@ class FileManager:
         
 if __name__ == "__main__":
     f = FileManager()
-    chunk = f.find_chunk("tozip.txt", 0, 16)
+    chunk = f.find_chunk("tozip.txt", 0, 512)
     chunk = f.uncompress_chunk(chunk)
     print chunk
-
 
 # a = Find_Chunk()
 # compressed_chunk = a.find_chunk('test.txt', 1, 3)
