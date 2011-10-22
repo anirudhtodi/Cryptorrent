@@ -92,8 +92,10 @@ class GossipServer:
 
     def gen_file_offer(self, item):
         name, dest_ip, filename, manager_ip = item
-        if self.file_manager.find_file(filname):
-            
+        filesize = self.file_manager.find_file(filname):
+        if filesize != None:
+            return ('has_file', self.bootstrapper.myip, filesize, item)
+        return None
 
 
     def init_file_request(self, filename):
