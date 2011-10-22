@@ -92,7 +92,7 @@ class NodeServer(LineReceiver, threading.Thread):
          pass
 
     def rawDataReceived(self, data):
-         pass
+         print "DDDDDDDDDDDDDDDDDDDDD", data
 
     def add_host(self, host):
         self.hosts.add(host)
@@ -298,9 +298,9 @@ class ManagerNode(GossipServer):
                 end_byte_number = amount_processed + self.chunk_size
                 if end_byte_number > filesize:
                     end_byte_number = filesize
-                    del self.files_to_process[filereq_to_process]
-                    print "FIN", filereq_to_process, self.files_to_process
-                    finished = True
+                    if filereq_to_process in self.files_to_process:
+                        del self.files_to_process[filereq_to_process]
+                        finished = True
                 amount_processed = end_byte_number+1
                 chunk_request = ('send_chunk', filereq_to_process[1],
                                  start_byte_number, end_byte_number,
