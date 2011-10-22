@@ -4,7 +4,7 @@ Bootstrapping process is as follows
 2. Multicast your IP address, listen for responses (IP addresses of other nodes)
 3. Store responses
 **4. If no responses, contact main server for list of nodes
-**5. Receive list of nodes from main server 
+**5. Receive list of nodes from main server
 **6. If no other nodes, try again later
 
 ** Currently Disabled
@@ -69,7 +69,7 @@ class MulticastClientThread(threading.Thread):
     def __init__(self, pkey):
         threading.Thread.__init__(self)
         self.pkey = pkey
-    
+
     def run(self):
         print "sending multicast hello"
         # Send multicast on 224.0.1.123:8005, on our dynamically allocated port
@@ -83,7 +83,7 @@ HOST = '172.23.124.59'
 PORT = 8007
 
 class BackupClientThread(threading.Thread):
-    
+
     def __init__(self, pkey):
         threading.Thread.__init__(self)
         self.pkey = pkey
@@ -121,8 +121,8 @@ class BackupClientThread(threading.Thread):
 class Bootstrapper:
     hosts = {}
     #myip = urlopen('http://whatismyip.org/').read()
-    myip = socket.gethostbyname(socket.gethostname())
-
+    #myip = socket.gethostbyname(socket.gethostname())
+    myip = "172.23.120.80"
 
     def __init__(self, pkey):
         self.pkey = pkey
