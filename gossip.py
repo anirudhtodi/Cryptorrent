@@ -1,3 +1,4 @@
+import time
 import signal
 import json
 import threading
@@ -139,7 +140,7 @@ class GossipServer:
         data = str(msg)
 
         start = 0
-        block_sz = 200
+        block_sz = 224
         result = []
         fout = open("/tmp/pub-key.pem", 'w')
         fout.write(key)
@@ -269,7 +270,7 @@ class GossipServer:
 
 
 class ManagerNode(GossipServer):
-    chunk_size = 102400
+    chunk_size = 1024
     files_to_process = {}
 
     def __init__ (self, gossiper):

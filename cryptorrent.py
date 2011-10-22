@@ -4,8 +4,12 @@ import rsa
 from bootstrap import Bootstrapper
 from gossip import GossipServer
 
-encryption.make_key()
-f = open('pub-key.pem', 'r')
+try:
+    f = open('pub-key.pem', 'r')
+except IOError:
+    encryption.make_key()
+    f = open('pub-key.pem', 'r')
+
 pubkey = f.read()
 f.close()
 
