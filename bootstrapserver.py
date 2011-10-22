@@ -38,7 +38,7 @@ class LoggingProtocol(LineReceiver):
     def dataReceived(self, line):
         client = self.transport.getPeer().host
         print client, "says", line
-        linedata = line.split()
+        linedata = line.split(None, 1)
         t = datetime.datetime.utcnow()
         if client != "127.0.0.1":
             hosts[client] = (linedata[1], time.mktime(t.timetuple()))
