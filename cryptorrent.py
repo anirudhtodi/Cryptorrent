@@ -8,8 +8,6 @@ bs.bootstrap()
 time.sleep(5)
 
 gs = GossipServer(bs)
-gs.start()
-
 
 while True:
     filename = raw_input('Filename: ')

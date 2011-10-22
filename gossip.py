@@ -26,7 +26,8 @@ class NodeServer(LineReceiver, threading.Thread):
         #reactor.run(installSignalHandlers=0)
 
     def connectionMade(self):
-        client = self.transport.getPeer().host
+        #client = self.transport.getPeer().host
+        pass
 
     def dataReceived(self, line):
         self.gossiper.process_gossip(json.loads(line))
@@ -63,12 +64,13 @@ class GossipServer:
         self.server = NodeServer(self)
         self.server.start()
         self.filemanager = FileManager()
-        self.manager = Manager()
+        self.manager = ManagerNode(self)
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
         self.gossip_queue = []
         self.gossip = {}
-        
+        print "Gossip Server Started..."
+
     def process_gossip(self, data):
         for item, ttl in data.items():
             if item not in self.gossip:
@@ -133,6 +135,7 @@ class GossipServer:
             item = None
         if not host:
             return
+        print "Gossiping with", host
         self.send(host, item)
 
     def gossip_data(self, item):
@@ -158,7 +161,7 @@ class ManagerNode(GossipServer):
     def __init__ (self, gossiper):
         self.gossiper = gossiper
         
-    def manager(self,has_file_request):
+    def manager(self, item):
         # Register each file that this node should be a manager of
         # Register every node that tells the manager that it is the source
         source_ip = item[1]
@@ -170,12 +173,12 @@ class ManagerNode(GossipServer):
         self.files_to_process[filereq].add(source_ip)
 
     def send_chunk_requests(self):
-        for filereq_to_process, filereq_info in files_to_process.items():
+        for filereq_to_process, filereq_info in self.files_to_process.items():
             amount_processed = filereq_info[0]
             filesize = filereq_info[1]
             for file_containing_node in filereq_info[2:]:
                 start_byte_number = amount_processed
-                end_byte_number = amount_processed + chunk_size
+                end_byte_number = amount_processed + self.chunk_size
                 if end_byte_number > filesize:
                     end_byte_number = filesize
                     del filereq_to_process[filereq_to_process]
