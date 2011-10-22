@@ -53,7 +53,6 @@ class NodeServer(LineReceiver, threading.Thread):
 
     def dataReceived(self, line):
         decr = self.gossiper.decrypt(str(line))
-        print "DECR", decr
         self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
         
     def lineReceived(self, line):
@@ -255,6 +254,7 @@ class ManagerNode(GossipServer):
                                  start_byte_number, end_byte_number,
                                  filereq_to_process)
                 self.gossiper.send_chunk_request(chunk_request, file_containing_node)
+                print "SENDING CHUNK:", start_byte_number, end_byte_number
                 newval = [amount_processed, filesize] + file_holders
                 if not finished:
                     self.files_to_process[filereq_to_process] = newval
