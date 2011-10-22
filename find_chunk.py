@@ -48,7 +48,7 @@ class Find_Chunk:
         else:
             return False
 
-a = Find_Chunk()
-compressed_chunk = a.find_chunk('test.txt', 1, 3)
-a.uncompress_chunk(compressed_chunk)
+# a = Find_Chunk()
+# compressed_chunk = a.find_chunk('test.txt', 1, 3)
+# a.uncompress_chunk(compressed_chunk)
         
