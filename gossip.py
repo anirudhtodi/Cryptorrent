@@ -34,7 +34,7 @@ def dict_unconvert(dic):
                 item = tuple(temp)
         newdic[item] = val
     return newdic
-    
+
 
 class NodeServer(LineReceiver, threading.Thread):
     hosts = set()
@@ -56,13 +56,13 @@ class NodeServer(LineReceiver, threading.Thread):
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
         except Exception as e:
             print "Unable to load json data due to exception: %s" % e
-            try:                
+            try:
                 decr = self.gossiper.decrypt(line)
                 self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
             except Exception as e2:
                 print "EXCEPTION: %s Unable to receive gossip data." % e2
-        
-        
+
+
     def lineReceived(self, line):
          pass
 
@@ -79,18 +79,18 @@ class NodeFactory(Factory):
 
 class GossipServer:
     """
-    
+
     Possible Gossip Information:
-      File Request - 
+      File Request -
         ('filereq', {destination_ip}, {filename}, {manager-ip})
       Send Chunk -
         ('send_chunk', {destination_ip}, {start}, {end}, filereq)
-      Chunk - 
+      Chunk -
         ('chunk', {start}, {end}, {data}, filereq)
-      Has File - 
+      Has File -
         ('has_file', {source_ip}, {filesize}, filereq)
     """
-    
+
     def __init__(self, bootstrapper, pubkey, privkey):
         self.server = NodeServer()
         NodeServer.gossiper = self
@@ -125,11 +125,18 @@ class GossipServer:
                 break
             crypt.append(rsa.encrypt(msg[:115], pemkey))
             msg = msg[115:]
-
-        return ''.join(crypt)
+        expand = []
+        for c in crypt:
+            for char in c:
+                expand.append(ord(char))
+        return ''.join([hex(c)[2:] for c in expand])
 
     def decrypt(self, msg):
         msg = str(msg)[:]
+        result = []
+        for i in xrange(len(msg), 2):
+            result.append(chr(int(msg[i:i+2], 16)))
+        msg = ''.join(result)
         decrypt = []
         while True:
             if msg == '':
@@ -164,7 +171,7 @@ class GossipServer:
                     print "RECEIVED REQUEST FOR CHUNK"
                     tag, dest_ip, start, end, filereq = item
                     tag, destip, filename, mip = filereq
-                    
+
                     file_chunk = self.filemanager.find_chunk('files/' + filename, start, end)
                     encrypted_chunk = self.encrypt(file_chunk, self.hosts[destip])
                     chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
@@ -239,10 +246,10 @@ class GossipServer:
 class ManagerNode(GossipServer):
     chunk_size = 1024
     files_to_process = {}
-    
+
     def __init__ (self, gossiper):
         self.gossiper = gossiper
-        threading.Timer(5, self.process_chunk_requests, ()).start()        
+        threading.Timer(5, self.process_chunk_requests, ()).start()
 
 
     def manage(self, item):
@@ -282,4 +289,4 @@ class ManagerNode(GossipServer):
                 newval = [amount_processed, filesize] + file_holders
                 if not finished:
                     self.files_to_process[filereq_to_process] = newval
-        threading.Timer(2, self.process_chunk_requests, ()).start()        
+        threading.Timer(2, self.process_chunk_requests, ()).start()
