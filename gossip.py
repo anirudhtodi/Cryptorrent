@@ -220,7 +220,7 @@ class GossipServer:
     def timed_hostcheck(self):
         for ip, pkey in self.bootstrapper.hosts.items():
             self.hosts[ip] = pkey
-        threading.Timer(30, self.timed_hostcheck, ()).start()
+        threading.Timer(3, self.timed_hostcheck, ()).start()
 
     def choose_random_host(self):
         if len(self.hosts) == 0:
@@ -271,7 +271,6 @@ class ManagerNode(GossipServer):
         if filereq not in self.files_to_process:
             print "Initializing managemt of:", filereq
             self.files_to_process[filereq] = [0, filesize]
-        print "APPENDING", source_ip
         self.files_to_process[filereq].append(source_ip)
 
     def process_chunk_requests(self):
