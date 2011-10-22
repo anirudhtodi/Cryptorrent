@@ -102,7 +102,7 @@ class BackupClientThread(threading.Thread):
             except Exception as e:
                 print "Home server is not available at this time: ", e, HOST, PORT
                 break
-            #print "Hosts received from backup server:", Bootstrapper.hosts
+            print "Hosts received from backup server:", Bootstrapper.hosts
             time.sleep(15)
 
 ######################
