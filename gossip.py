@@ -30,6 +30,10 @@ def dict_unconvert(dic):
         item = json.loads(key)
         if item[0] == 'chunk':
             item[3] = self.gossiper.decrypt(loaded_key[3])
+
+        if type(item) == type(''):
+            print "AAAAAAAAAAAAAAAHHHHH", item
+
         for i in range(len(item)):
             if type(item[i]) == type([]):
                 item[i] = tuple(item[i])
@@ -150,7 +154,6 @@ class GossipServer:
         return ''.join(result)
 
     def process_gossip(self, data):
-        print "PG", data
         for item, ttl in data.items():
             if item not in self.current_gossip:
                 self.current_gossip.add(item)
