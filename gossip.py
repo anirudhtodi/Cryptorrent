@@ -107,7 +107,7 @@ class GossipServer:
 
 
     def encrypt(self, msg, key):
-        return rsa.encrypt(msg)
+        return rsa.encrypt(msg, key)
 
     def decrypt(self, msg):
         return rsa.decrypt(msg, self.privkey)
