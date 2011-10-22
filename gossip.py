@@ -114,12 +114,12 @@ class GossipServer:
                 elif item[0] == 'chunk':
                     print "RECEIVED CHUNK"
                     tag, start, end, data, filereq, hopttl = item
-                    tag, destip, filename, mip, hopttl = filereq
+                    tag, destip, filename, mip = filereq
                     self.filemanager.receive_chunk('files/' + filename, start, end, data)
                 elif item[0] == 'send_chunk':
                     print "RECEIVED REQUEST FOR CHUNK"
                     tag, dest_ip, start, end, filereq, hopttl = item
-                    tag, destip, filename, mip, hopttl = filereq
+                    tag, destip, filename, mip = filereq
                     chunk = ('chunk', start, end, self.filemanager.find_chunk('files/' + filename, start, end), filereq, 1)
                     self.gossip_queue.append((destip, chunk))
                 elif item[0] == 'has_file':
