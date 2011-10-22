@@ -295,6 +295,7 @@ class ManagerNode(GossipServer):
             file_holders = filereq_info[2:]
             finished = False
             for file_containing_node in file_holders:
+                print "Asking Node to send a chunk:", file_containing_node, file_holders
                 start_byte_number = amount_processed
                 end_byte_number = amount_processed + self.chunk_size
                 if end_byte_number > filesize:
