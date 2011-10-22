@@ -159,15 +159,15 @@ class GossipServer:
     def gossip_data(self, item):
         return json.dumps(dict_convert(self.gossip_dict, item))
 
-
-
-
     def send(self, host, item):
-        data = self.gossip_data(item)
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(2)
-        s.connect((host, 7060))
-        s.send(data)
+        try:
+            data = self.gossip_data(item)
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(2)
+            s.connect((host, 7060))
+            s.send(data)
+        except Exception as e:
+            print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
 
 class ManagerNode(GossipServer):
