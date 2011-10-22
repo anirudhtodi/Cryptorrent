@@ -78,12 +78,12 @@ class NodeServer(LineReceiver, threading.Thread):
 
     def dataReceived(self, line):
         if line[-1] != '}':
-            cache += line
+            self.cache += line
             return
-        elif cache != '':
-            cache += line
-            line = cache
-            cache = ''
+        elif self.cache != '':
+            self.cache += line
+            line = self.cache
+            self.cache = ''
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
         else:
             self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
