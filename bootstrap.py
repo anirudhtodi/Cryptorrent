@@ -100,8 +100,9 @@ class BackupClientThread(threading.Thread):
             print "YYYYYYYYYYYYY"
 
             while True:
-                data += s.recv(1024)
-                if not data: break
+                x = s.recv(1024)
+                if not x: break
+                data += x
             data = json.loads(data)
 
             print "XXXXXXXXXXXX"
