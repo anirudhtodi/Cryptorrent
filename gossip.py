@@ -51,7 +51,7 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        decr =  encryption.decrypt(line)
+        decr =  encryption.decrypt(str(line))
         print "DECR", decr
         self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
         
