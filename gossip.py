@@ -82,7 +82,6 @@ class GossipServer:
     """
     
     def __init__(self, bootstrapper):
-        encryption.make_key()
         self.server = NodeServer()
         NodeServer.gossiper = self
         self.server.start()

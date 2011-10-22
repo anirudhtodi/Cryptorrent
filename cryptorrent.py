@@ -1,8 +1,13 @@
 import time
+import encryption
 from bootstrap import Bootstrapper
 from gossip import GossipServer
 
-bs = Bootstrapper('xx')
+encryption.make_key()
+f = open('pub-key.pem', 'r')
+
+bs = Bootstrapper(f.read())
+f.close()
 bs.bootstrap()
 
 time.sleep(5)
