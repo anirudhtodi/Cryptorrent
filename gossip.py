@@ -93,10 +93,11 @@ class GossipServer:
     def process_gossip(self, data):
         for item, ttl in data.items():
             if item not in self.gossip_dict:
-                print "Processing Gossip:", item
+                print "\tProcessing Gossip:", item
                 if item[0] == 'filereq':
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
+                        print "\tHave File:", item
                         manager_ip = item[3]
                         self.gossip_queue.append(manager_ip, file_offer)            
                 elif item[0] == 'chunk':
@@ -186,6 +187,7 @@ class ManagerNode(GossipServer):
         filereq = item[3]
         filename = filereq[2]
         if not self.files_to_process.contains(filereq):
+            print "Initializing management of:", filereq
             self.files_to_process.put(filereq, [0, filesize])
         self.files_to_process[filereq].add(source_ip)
 
