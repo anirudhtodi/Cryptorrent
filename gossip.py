@@ -68,12 +68,15 @@ class GossipServer:
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
         self.gossip_queue = []
-        self.gossip = {}
+        self.gossip_dict = {}
+
+        self.timed_gossip()
+        self.timed_hostcheck()
         print "Gossip Server Started..."
 
     def process_gossip(self, data):
         for item, ttl in data.items():
-            if item not in self.gossip:
+            if item not in self.gossip_dict:
                 if item[0] == 'filereq':
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
@@ -97,7 +100,7 @@ class GossipServer:
 
     def gen_file_offer(self, item):
         tag, dest_ip, filename, manager_ip, hop_ttl = item
-        self.gossip[(tag, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
+        self.gossip_dict[(tag, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
         filesize = self.filemanager.find_file(filename)
         if filesize != None:
             return ('has_file', self.bootstrapper.myip, filesize, item, 1)
@@ -106,7 +109,7 @@ class GossipServer:
     def init_file_request(self, filename):
         manager = self.choose_random_host()
         filereq = ('filreq', self.bootstrapper.myip, filename, manager, 255)
-        self.gossip[filereq] = 100
+        self.gossip_dict[filereq] = 100
 
     def timed_gossip(self):
         self.gossip()
@@ -140,11 +143,11 @@ class GossipServer:
 
     def gossip_data(self, item):
         if item != None:
-            g = copy.deepcopy(self.gossip)
+            g = copy.deepcopy(self.gossip_dict)
             g[item] = 100
             return json.dumps(g)
         else:
-            return json.dumps(self.gossip)
+            return json.dumps(self.gossip_dict)
 
     def send(self, host, item):
         data = self.gossip_data(item)
