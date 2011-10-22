@@ -10,6 +10,7 @@ Bootstrapping process is as follows
 ** Currently Disabled
 """
 
+import json
 from twisted.internet.protocol import DatagramProtocol
 from twisted.internet import reactor
 from twisted.application.internet import MulticastServer
@@ -89,28 +90,19 @@ class BackupClientThread(threading.Thread):
 
     def run(self):
         print "No clients located, attempting to contact backup server...."
-        while (len(Bootstrapper.hosts)==0):
+        while True:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect((HOST, PORT))
                 s.send("GIMMEHOSTS %s" % self.pkey)
-                data = s.recv(1024).split()
-                if data[0] != Bootstrapper.myip:
-                    Bootstrapper.hosts[data[0]] = data[1]
-                print "received", repr(data)
+                data = json.loads(s.recv(1024))
+                for datum in data:
+                    if datum != Bootstrapper.myip:
+                        Bootstrapper.hosts[datum] = data[datum]
             except Exception as e:
                 print "Home server is not available at this time: ", e, HOST, PORT
-            print "Hosts received from backup server:", Bootstrapper.hosts
-            time.sleep(15)
-        while True:
-            try:
-                s.send("HERE %s" % self.pkey)
-                data = s.recv(1024).split()
-                if data != "OK":
-                    break
-            except Exception as e:
-                print "Home server no longer available", e, HOST, PORT
                 break
+            print "Hosts received from backup server:", Bootstrapper.hosts
             time.sleep(15)
 
 ######################

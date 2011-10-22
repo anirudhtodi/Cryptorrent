@@ -13,6 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Scale.  If not, see <http://www.gnu.org/licenses/>.
 
+import json
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
 from twisted.protocols.basic import LineReceiver
@@ -46,8 +47,14 @@ class LoggingProtocol(LineReceiver):
             self.transport.write("OK")
         elif linedata[0] == "GIMMEHOSTS":
             print hosts
+            to_send = {}
+            counter = 0
             for host in hosts:
-                self.transport.write("%s %s" % (host, hosts[host][0]))
+                counter += 1
+                if counter > 10:
+                    break
+                to_send[host] = hosts[host][0]
+            self.transport.write(json.dumps(to_send))
         else:
             self.transport.write("Invalid Message")
         self.factory.fp.write(line+'\n')
