@@ -21,7 +21,6 @@ class NodeServer(LineReceiver, threading.Thread):
         threading.Thread.__init__(self)
         self.gossiper = gossiper
 
-
     def run(self):
         reactor.listenTCP(7060, NodeFactory())
         #reactor.run(installSignalHandlers=0)
@@ -31,7 +30,6 @@ class NodeServer(LineReceiver, threading.Thread):
 
     def dataReceived(self, line):
         self.gossiper.process_gossip(json.loads(line))
-        #self.transport.write(output_data)
         
     def lineReceived(self, line):
          pass
@@ -146,10 +144,10 @@ class GossipServer:
 
     def send(self, host, item):
         data = self.gossip_data(item)
-        
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.settimeout(2)
         s.connect((host, 7060))
         s.send(data)
 
     
+
