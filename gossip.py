@@ -193,6 +193,8 @@ class GossipServer:
                         encrypted_chunk = self.encrypt(file_chunk, self.hosts[destip])
                         chunk_descriptor = ('chunk', start, end, encrypted_chunk, filereq)
                         self.gossip_queue.append((destip, chunk_descriptor))
+                    else:
+                        print "NNNOOOOOTTTTT", self.hosts, destip
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
 
@@ -266,7 +268,7 @@ class GossipServer:
 
 
 class ManagerNode(GossipServer):
-    chunk_size = 1024
+    chunk_size = 102400
     files_to_process = {}
 
     def __init__ (self, gossiper):
