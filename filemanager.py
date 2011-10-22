@@ -34,10 +34,12 @@ class FileManager:
         if start_byte == progress:
             f = open(file_name, "ab")
             f.write(chunk)
+            print "writing chunk starting at %n" % progress
             progress = finish_byte + 1
             while ((file_name, progress) in self.cached_chunks):
-                print "block starting at %n in cached" % progress 
+                print "writing chunk starting at %n from cached" % progress 
                 f.write(self.cached_chunks[(file_name, progress)][0])
+                del self.cached_chunks[(file_name, progress)]
                 progress = self.cached_chunks[(file_name, progress)][1] + 1
             f.close()
         else:
