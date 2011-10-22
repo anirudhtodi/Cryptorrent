@@ -121,8 +121,8 @@ class BackupClientThread(threading.Thread):
 class Bootstrapper:
     hosts = {}
     #myip = urlopen('http://whatismyip.org/').read()
-    myip = socket.gethostbyname(socket.gethostname())
-    #myip = "172.23.120.80"
+    #myip = socket.gethostbyname(socket.gethostname())
+    myip = "172.23.120.80"
 
     def __init__(self, pkey):
         self.pkey = pkey

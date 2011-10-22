@@ -46,7 +46,6 @@ def decrypt(msg):
     for i in xrange(0, len(msg), 2):
         result.append(chr(int(msg[i:i+2], 16)))
     data = ''.join(result)
-    print ("Decrypting chunk of size %d, " % len(msg)), repr(data)
     start = 0
     block_sz = 256
     result = []
@@ -152,7 +151,6 @@ class GossipServer:
             out, err = p.communicate(block)
             result.append(out)
             start += block_sz
-        print "Encrypting", repr(''.join(result))
         expand = []
         for c in result:
             for char in c:
