@@ -51,13 +51,13 @@ class GossipServer:
     
     Possible Gossip Information:
       File Request - 
-        ('filereq', {dest-ip}, {filename}, {manager-ip})
+        ('filereq', {destination_ip}, {filename}, {manager-ip}, {hop_ttl})
       Send Chunk -
-        
+        ('send_chunk', {destination_ip}, {start}, {end}, filereq, {hop-ttl})
       Chunk - 
-      
+        ('chunk', {destination_ip}, {start}, {end}, {data}, filereq, {hop-ttl})
       Has File - 
-      
+        ('has_file', {source_ip}, {filesize}, filereq, {hop_ttl})
     """
 
     time_interval = 3
@@ -79,10 +79,9 @@ class GossipServer:
                     ### manager server stuff
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
-                        self.gossip[file_offer] = 1
+                        self.gossip[file_offer] = 10 + len(self.gossip_queue)
                         manager_ip = item[3]
                         self.gossip_queue.append(manager_ip)                  
-                        
                 elif item[0] == 'chunk':
                     pass
                 elif item[0] == 'send_chunk':
@@ -91,15 +90,14 @@ class GossipServer:
                     pass
 
     def gen_file_offer(self, item):
-        name, dest_ip, filename, manager_ip = item
+        name, dest_ip, filename, manager_ip, hope_ttl = item
         filesize = self.file_manager.find_file(filname):
         if filesize != None:
-            return ('has_file', self.bootstrapper.myip, filesize, item)
+            return ('has_file', self.bootstrapper.myip, filesize, item, 1)
         return None
 
-
     def init_file_request(self, filename):
-        filereq = ('filreq', self.bootstrapper.myip, filename, manager)
+        filereq = ('filreq', self.bootstrapper.myip, filename, manager, 255)
         self.gossip[filereq] = 100
 
     def timed_gossip(self):
