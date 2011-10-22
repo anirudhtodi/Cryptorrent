@@ -65,8 +65,10 @@ class GossipServer:
     def __init__(self, bootstrapper):
         self.server = NodeServer(self)
         self.server.start()
+        self.filemanager = FileManager()
         self.bootstrapper = bootstrapper
         self.hosts = bootstrapper.hosts
+        self.gossip_queue = []
         self.gossip = {}
 
     def process_gossip(self, data):
@@ -74,13 +76,25 @@ class GossipServer:
             if item not in self.gossip:
                 self.gossip[item] = ttl
                 if item[0] == 'filereq':
-                    pass
+                    ### manager server stuff
+                    file_offer = self.gen_file_offer(item)
+                    if file_offer:
+                        self.gossip[file_offer] = 1
+                        manager_ip = item[3]
+                        self.gossip_queue.append(manager_ip)                  
+                        
                 elif item[0] == 'chunk':
                     pass
                 elif item[0] == 'send_chunk':
                     pass
                 elif item[0] == 'has_file':
                     pass
+
+    def gen_file_offer(self, item):
+        name, dest_ip, filename, manager_ip = item
+        if self.file_manager.find_file(filname):
+            
+
 
     def init_file_request(self, filename):
         filereq = ('filreq', self.bootstrapper.myip, filename, manager)
