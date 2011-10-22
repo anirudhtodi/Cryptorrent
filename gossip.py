@@ -210,8 +210,6 @@ class GossipServer:
         print "You requested:", filename
         manager = self.choose_random_host()
 
-        print "IP:", sef.bootstrapper.myip
-
         filereq = ('filereq', self.bootstrapper.myip, filename, manager)
         self.gossip_dict[filereq] = 100
 
