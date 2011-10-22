@@ -24,7 +24,7 @@ def dict_convert(dic, item):
         newdic[json.dumps(key)] = val
     return newdic
 
-def dict_unconvert(dic, self):
+def dict_unconvert(dic):
     print "DCT UNCONCERT INPUT:", dic
     newdic = {}
     for key, val in dic.items():
@@ -32,7 +32,7 @@ def dict_unconvert(dic, self):
         item = json.loads(key)
         print "POSTKEY", item
         if item[0] == 'chunk':
-            item[3] = decrypt(loaded_key[3])
+            item[3] = decrypt(item[3])
 
         if type(item) == type(''):
             print "AAAAAAAAAAAAAAAHHHHH", item
@@ -45,7 +45,7 @@ def dict_unconvert(dic, self):
 
 
 
-def decrypt(self, msg):
+def decrypt(msg):
     msg = str(msg)
     result = []
     for i in xrange(0, len(msg), 2):
