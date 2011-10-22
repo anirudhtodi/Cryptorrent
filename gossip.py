@@ -107,10 +107,10 @@ class GossipServer:
 
 
     def encrypt(self, msg, key):
-        return rsa.encrypt(msg, key)
+        return rsa.encrypt(str(msg), str(key))
 
     def decrypt(self, msg):
-        return rsa.decrypt(msg, self.privkey)
+        return rsa.decrypt(str(msg), str(self.privkey))
 
     def process_gossip(self, data):
         for item, ttl in data.items():
