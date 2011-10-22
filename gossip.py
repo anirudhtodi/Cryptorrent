@@ -176,14 +176,14 @@ class GossipServer:
         return json.dumps(dict_convert(self.gossip_dict, item))
 
     def send(self, host, item):
-        try:
+        #try:
             data = self.gossip_data(item)
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
             s.send(data)
-        except Exception as e:
-            print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
+        #except Exception as e:
+        #    print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
 
 
 class ManagerNode(GossipServer):
@@ -210,22 +210,26 @@ class ManagerNode(GossipServer):
     def process_chunk_requests(self):
         print self.files_to_process
         for filereq_to_process, filereq_info in self.files_to_process.items():
+            if not filereq_info:
+                continue
             amount_processed = filereq_info[0]
             filesize = filereq_info[1]
             file_holders = filereq_info[2:]
+            finished = False
             for file_containing_node in file_holders:
                 start_byte_number = amount_processed
                 end_byte_number = amount_processed + self.chunk_size
-                print "NEW END BYTE:", end_byte_number
                 if end_byte_number > filesize:
                     end_byte_number = filesize
                     del self.files_to_process[filereq_to_process]
+                    print "FIN", filereq_to_process, self.files_to_process
+                    finished = True
                 amount_processed = end_byte_number+1
-                print "APC", amount_processed
                 chunk_request = ('send_chunk', filereq_to_process[1],
                                  start_byte_number, end_byte_number,
                                  filereq_to_process)
                 self.gossiper.send_chunk_request(chunk_request, file_containing_node)
-                print "FILESIZE:", filesize
-                self.files_to_process[filereq_to_process] = [amount_processed, filesize, file_holders]
+                newval = [amount_processed, filesize] + file_holders
+                if not finished:
+                    self.files_to_process[filereq_to_process] = newval
         threading.Timer(2, self.process_chunk_requests, ()).start()        
