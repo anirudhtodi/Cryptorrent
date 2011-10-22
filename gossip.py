@@ -72,13 +72,13 @@ class GossipServer:
     
     Possible Gossip Information:
       File Request - 
-        ('filereq', {destination_ip}, {filename}, {manager-ip}, {hop_ttl})
+        ('filereq', {destination_ip}, {filename}, {manager-ip})
       Send Chunk -
-        ('send_chunk', {destination_ip}, {start}, {end}, filereq, {hop-ttl})
+        ('send_chunk', {destination_ip}, {start}, {end}, filereq)
       Chunk - 
-        ('chunk', {start}, {end}, {data}, filereq, {hop-ttl})
+        ('chunk', {start}, {end}, {data}, filereq)
       Has File - 
-        ('has_file', {source_ip}, {filesize}, filereq, {hop_ttl})
+        ('has_file', {source_ip}, {filesize}, filereq)
     """
     
     def __init__(self, bootstrapper):
@@ -99,8 +99,8 @@ class GossipServer:
 
     def process_gossip(self, data):
         for item, ttl in data.items():
-            if item[:-1] not in self.current_gossip:
-                self.current_gossip.add(item[:-1])
+            if item not in self.current_gossip:
+                self.current_gossip.add(item)
                 print "\tProcessing Gossip:", item, self.gossip_dict
                 if item[0] == 'filereq':
                     file_offer = self.gen_file_offer(item)
@@ -108,19 +108,19 @@ class GossipServer:
                         print "\tHave File:", item
                         manager_ip = item[3]
                         if manager_ip == self.bootstrapper.myip:
-                            self.manager.manage(('has_file', self.bootstrapper.myip, file_offer, item, 1))
+                            self.manager.manage(('has_file', self.bootstrapper.myip, file_offer, item))
                         else:
                             self.gossip_queue.append((manager_ip, file_offer))
                 elif item[0] == 'chunk':
                     print "RECEIVED CHUNK"
-                    tag, start, end, data, filereq, hopttl = item
+                    tag, start, end, data, filereq = item
                     tag, destip, filename, mip = filereq
                     self.filemanager.receive_chunk('files/' + filename, start, end, data)
                 elif item[0] == 'send_chunk':
                     print "RECEIVED REQUEST FOR CHUNK"
-                    tag, dest_ip, start, end, filereq, hopttl = item
+                    tag, dest_ip, start, end, filereq = item
                     tag, destip, filename, mip = filereq
-                    chunk = ('chunk', start, end, self.filemanager.find_chunk('files/' + filename, start, end), filereq, 1)
+                    chunk = ('chunk', start, end, self.filemanager.find_chunk('files/' + filename, start, end), filereq)
                     self.gossip_queue.append((destip, chunk))
                 elif item[0] == 'has_file':
                     self.manager.manage(item)
@@ -131,16 +131,16 @@ class GossipServer:
 
     def gen_file_offer(self, item):
         tag, dest_ip, filename, manager_ip, hop_ttl = item
-        self.gossip_dict[(tag, dest_ip, filename, manager_ip, hop_ttl - 1)] = 100
+        self.gossip_dict[(tag, dest_ip, filename, manager_ip)] = 100
         filesize = self.filemanager.find_file('files/' + filename)
         if filesize != None:
-            return ('has_file', self.bootstrapper.myip, filesize, item, 1)
+            return ('has_file', self.bootstrapper.myip, filesize, item)
         return None
 
     def init_file_request(self, filename):
         print "You requested:", filename
         manager = self.choose_random_host()
-        filereq = ('filereq', self.bootstrapper.myip, filename, manager, 255)
+        filereq = ('filereq', self.bootstrapper.myip, filename, manager)
         self.gossip_dict[filereq] = 100
 
     def timed_gossip(self):
@@ -199,14 +199,12 @@ class ManagerNode(GossipServer):
         # Register each file that this node should be a manager of
         # Register every node that tells the manager that it is the source
         print "MANAGEMNT STARTED:", item
-        source_ip = item[1]
-        filesize = item[2]
-        filereq = item[3]
-        filename = filereq[2]
-        if not (filereq[:-1] in self.files_to_process):
-            print "Initializing management of:", filereq[:-1]
-            self.files_to_process[filereq[:-1]] = [0, filesize]
-        self.files_to_process[filereq[:-1]].append(source_ip)
+        tag, source_ip, filesize, filereq = item
+
+        if filereq not in self.files_to_process:
+            print "Initializing managemt of:", filereq
+            self.files_to_process[filereq] = [0, filesize]
+        self.files_to_process[filereq].apend(source_ip)
 
     def process_chunk_requests(self):
         for filereq_to_process, filereq_info in self.files_to_process.items():
@@ -221,6 +219,6 @@ class ManagerNode(GossipServer):
                 amount_processed = end_byte_number+1
                 chunk_request = ('send_chunk', filereq_to_process[1],
                                  start_byte_number, end_byte_number,
-                                 filereq_to_process, 1)
+                                 filereq_to_process)
                 self.gossiper.send_chunk_request(chunk_request, file_containing_node)
         threading.Timer(5, self.process_chunk_requests, ()).start()        
