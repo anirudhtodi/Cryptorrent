@@ -15,7 +15,8 @@ from twisted.internet import reactor
 from twisted.application.internet import MulticastServer
 import time, datetime, signal, socket
 from urllib2 import urlopen
-from threading import Thread
+#from threading import Thread
+import threading
 
 signal.signal(signal.SIGINT,signal.SIG_DFL)
 
@@ -25,22 +26,31 @@ signal.signal(signal.SIGINT,signal.SIG_DFL)
 ##########
 
 class MulticastServerUDP(DatagramProtocol):
+
+    def __init__(self, pkey):
+        self.pkey = pkey
+
     def startProtocol(self):
         print 'Multicast Server Started Listening....'
         # Join a specific multicast group, which is the IP we will respond to
         self.transport.joinGroup('224.0.1.123')
 
     def datagramReceived(self, datagram, address):
-        print address
-        if datagram != Bootstrapper.myip:
-            Bootstrapper.hosts[datagram] = time.mktime(datetime.datetime.utcnow().timetuple()) + 600.0
+        ip, pkey = datagram.split()
+        if ip != Bootstrapper.myip:
+            Bootstrapper.hosts[ip] = pkey
             print "Bootstrap Server Hosts:....", Bootstrapper.hosts
-            print "Heard Multicast Datagram:", repr(datagram)
-            self.transport.write(Bootstrapper.myip, address)
+            print "Heard Multicast Datagram:", repr(ip)
+            self.transport.write("%s %s" % (Bootstrapper.myip, self.pkey), address)
 
-class MulticastServerThread(Thread):
+class MulticastServerThread(threading.Thread):
+
+    def __init__(self, pkey):
+        threading.Thread.__init__(self)
+        self.pkey = pkey
+
     def run(self):
-        reactor.listenMulticast(8005, MulticastServerUDP())
+        reactor.listenMulticast(8005, MulticastServerUDP(self.pkey))
         reactor.run(installSignalHandlers=0)
 
 ##########
@@ -50,14 +60,19 @@ class MulticastServerThread(Thread):
 class MulticastClientUDP(DatagramProtocol):
 
     def datagramReceived(self, datagram, address):
-        if datagram != Bootstrapper.myip:
-            Bootstrapper.hosts[datagram] = time.mktime(datetime.datetime.utcnow().timetuple()) + 600.0
+        ip, pkey = datagram.split()
+        if ip != Bootstrapper.myip:
+            Bootstrapper.hosts[ip] = pkey
 
-class MulticastClientThread(Thread):
+class MulticastClientThread(threading.Thread):
+    def __init__(self, pkey):
+        threading.Thread.__init__(self)
+        self.pkey = pkey
+    
     def run(self):
         print "sending multicast hello"
         # Send multicast on 224.0.1.123:8005, on our dynamically allocated port
-        reactor.listenUDP(0, MulticastClientUDP()).write(Bootstrapper.myip, ('224.0.1.123', 8005))
+        reactor.listenUDP(0, MulticastClientUDP()).write("%s %s" % (Bootstrapper.myip, self.pkey), ('224.0.1.123', 8005))
 
 ##########
 # BACKUP #
@@ -66,41 +81,58 @@ class MulticastClientThread(Thread):
 HOST = '172.23.124.59'
 PORT = 8007
 
-class BackupClientThread(Thread):
+class BackupClientThread(threading.Thread):
+    
+    def __init__(self, pkey):
+        threading.Thread.__init__(self)
+        self.pkey = pkey
+
     def run(self):
         print "No clients located, attempting to contact backup server...."
         while (len(Bootstrapper.hosts)==0):
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             try:
                 s.connect((HOST, PORT))
-                s.send("GIMMEHOSTS")
-                data = s.recv(1024)
-                if data != Bootstrapper.myip:
-                    Bootstrapper.hosts[data] = time.mktime(datetime.datetime.utcnow().timetuple()) + 600.0
+                s.send("GIMMEHOSTS %s" % self.pkey)
+                data = s.recv(1024).split()
+                if data[0] != Bootstrapper.myip:
+                    Bootstrapper.hosts[data[0]] = data[1]
                 print "received", repr(data)
             except Exception as e:
                 print "Home server is not available at this time: ", e, HOST, PORT
             print "Hosts received from backup server:", Bootstrapper.hosts
-            time.sleep(60)
+            time.sleep(15)
+        while True:
+            try:
+                s.send("HERE %s" % self.pkey)
+                data = s.recv(1024).split()
+                if data != "OK":
+                    break
+            except Exception as e:
+                print "Home server no longer available", e, HOST, PORT
+                break
+            time.sleep(15)
 
 ######################
 ### INITIALIZATION ###
 ######################
 
-class Bootstrapper():
-
+class Bootstrapper:
     hosts = {}
     myip = urlopen('http://whatismyip.org/').read()
     myip = socket.gethostbyname(socket.gethostname())
 
+    def __init__(self, pkey):
+        self.pkey = pkey
+
     def bootstrap(self):
-        MulticastServerThread().start()
-        MulticastClientThread().start()
+        MulticastServerThread(self.pkey).start()
+        MulticastClientThread(self.pkey).start()
         #Give multicast a chance to find some friends
         time.sleep(5)
         if len(self.hosts)==0:
-            BackupClientThread().start()
+            BackupClientThread(self.pkey).start()
 
 if __name__ == "__main__":
-    b = Bootstrapper()
+    b = Bootstrapper(1337)
     b.bootstrap()
