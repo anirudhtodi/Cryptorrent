@@ -12,12 +12,10 @@ class FileManager:
         f = open(file_name, 'rb')
         ignore_bytes = f.read(start_byte_number)
         bytes_to_read = f.read(end_byte_number - start_byte_number)
-        return bytes_to_read
-#        return zlib.compress(binascii.b2a_uu(bytes_to_read))
-    
+        return zlib.compress(bytes_to_read, 9)
+
     def uncompress_chunk(self, compressed_chunk):
-        return compressed_chunk
- #       return binascii.a2b_uu(zlib.decompress(compressed_chunk))
+        return zlib.decompress(compressed_chunk)
     
     def find_file(self, file_name):
         # Check if the file_name exists in our current directory
