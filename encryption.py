@@ -6,14 +6,17 @@ def make_key():
     Popen(['openssl', 'rsa', '-in', 'key.pem', '-pubout', '-out',
            'pub-key.pem'])
 
-def encrypt(data):
+def encrypt(data, pubkey):
     start = 0
     block_sz = 244
     result = []
+    fout = open("/tmp/pub-key.pem", 'w')
+    fout.write(pubkey)
+    fout.close()
     while start < len(data) - 1:
         block = data[start:start + block_sz]
         p = Popen(['openssl', 'rsautl', '-encrypt', '-inkey',
-                   'pub-key.pem', '-pubin'], stdin=PIPE, stdout=PIPE)
+                   '/tmp/pub-key.pem', '-pubin'], stdin=PIPE, stdout=PIPE)
         out, err = p.communicate(block)
         result.append(out)
         start += block_sz
