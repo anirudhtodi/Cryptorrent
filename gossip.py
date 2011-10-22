@@ -1,6 +1,5 @@
 import signal
 import json
-import copy
 import threading
 import socket
 from filemanager import FileManager
@@ -13,6 +12,22 @@ from twisted.protocols.basic import LineReceiver
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+
+
+def dict_convert(dic, item):
+    newdic = {}
+    if item != None:
+        newdic[json.dumps(item)] = 100
+    for key, val in dic.items():
+        newdic[json.dumps(key)] = val
+    return newdic
+
+def dict_unconvert(dic):
+    newdic = {}
+    for key, val in dic.items():
+        newdic[json.loads(key)] = val
+    return newdic
+    
 
 class NodeServer(LineReceiver, threading.Thread):
     hosts = set()
@@ -30,7 +45,7 @@ class NodeServer(LineReceiver, threading.Thread):
         pass
 
     def dataReceived(self, line):
-        self.gossiper.process_gossip(json.loads(line))
+        self.gossiper.process_gossip(dict_unconvert(line))
         
     def lineReceived(self, line):
          pass
@@ -142,12 +157,10 @@ class GossipServer:
         self.send(host, item)
 
     def gossip_data(self, item):
-        if item != None:
-            g = copy.deepcopy(self.gossip_dict)
-            g[item] = 100
-            return json.dumps(g)
-        else:
-            return json.dumps(self.gossip_dict)
+        return json.dumps(dict_convert(self.gossip_dict, item))
+
+
+
 
     def send(self, host, item):
         data = self.gossip_data(item)
