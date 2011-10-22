@@ -71,14 +71,16 @@ class GossipServer:
 
     def process_gossip(self, data):
         for item, ttl in data.items():
-            if item[0] == 'filereq':
-                pass
-            elif item[0] == 'chunk':
-                pass
-            elif item[0] == 'send_chunk':
-                pass
-            elif item[0] == 'has_file':
-                pass
+            if item not in self.gossip:
+                self.gossip[item] = ttl
+                if item[0] == 'filereq':
+                    pass
+                elif item[0] == 'chunk':
+                    pass
+                elif item[0] == 'send_chunk':
+                    pass
+                elif item[0] == 'has_file':
+                    pass
 
     def init_file_request(self, filename):
         filereq = ('filreq', self.bootstrapper.myip, filename, manager)
