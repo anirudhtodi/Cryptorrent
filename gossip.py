@@ -68,7 +68,7 @@ class GossipServer:
         self.hosts = bootstrapper.hosts
         self.gossip_queue = []
         self.gossip = {}
-
+        
     def process_gossip(self, data):
         for item, ttl in data.items():
             if item not in self.gossip:
@@ -91,6 +91,7 @@ class GossipServer:
 
     def send_chunk_request(self, req, ip):
         self.gossip_queue.append(ip, req)
+
 
     def gen_file_offer(self, item):
         tag, dest_ip, filename, manager_ip, hop_ttl = item
@@ -149,5 +150,38 @@ class GossipServer:
         s.connect((host, 7060))
         s.send(data)
 
-    
 
+class ManagerNode(GossipServer):
+    chunk_size = 512
+    files_to_process = {}
+    
+    def __init__ (self, gossiper):
+        self.gossiper = gossiper
+        
+    def manager(self,has_file_request):
+        # Register each file that this node should be a manager of
+        # Register every node that tells the manager that it is the source
+        source_ip = item[1]
+        filesize = item[2]
+        filereq = item[3]
+        filename = filereq[2]
+        if not self.files_to_process.contains(filereq):
+            self.files_to_process.put(filereq, [0, filesize])
+        self.files_to_process[filereq].add(source_ip)
+
+    def send_chunk_requests(self):
+        for filereq_to_process, filereq_info in files_to_process.items():
+            amount_processed = filereq_info[0]
+            filesize = filereq_info[1]
+            for file_containing_node in filereq_info[2:]:
+                start_byte_number = amount_processed
+                end_byte_number = amount_processed + chunk_size
+                if end_byte_number > filesize:
+                    end_byte_number = filesize
+                    del filereq_to_process[filereq_to_process]
+                amount_processed = end_byte_number+1
+                chunk_request = ('send_chunk', filereq_to_process[1],
+                                 start_byte_number, end_byte_number,
+                                 filereq_to_process, 1)
+                self.gossiper(chunk_request)
+            
