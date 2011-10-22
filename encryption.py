@@ -20,7 +20,7 @@ def encrypt(data, pubkey):
         out, err = p.communicate(block)
         result.append(out)
         start += block_sz
-        return ''.join(result)
+    return ''.join(result)
 
 def decrypt(data):
     start = 0

@@ -9,6 +9,7 @@ from random import choice
 from twisted.internet.protocol import Factory, Protocol
 from twisted.internet import reactor
 from twisted.protocols.basic import LineReceiver
+from subprocess import Popen, PIPE
 
 
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -114,43 +115,73 @@ class GossipServer:
 
     @classmethod
     def encrypt(self, msg, key):
-        msg = str(msg)[:]
-        key = key[10:-1]
-        n, e = key.split(', ')
-        pemkey = rsa.PublicKey(int(n) , int(e))
+        data = str(msg)
 
-        crypt = []
-        while True:
-            if msg == '':
-                break
-            crypt.append(rsa.encrypt(msg[:114], pemkey))
-            msg = msg[114:]
-        print repr(''.join(crypt))
+        start = 0
+        block_sz = 244
+        result = []
+        #fout = open("/tmp/pub-key.pem", 'w')
+        #fout.write(key)
+        #fout.close()
+        while start < len(data) - 1:
+            block = data[start:start + block_sz]
+            p = Popen(['openssl', 'rsautl', '-encrypt', '-inkey',
+                       'pub-key.pem', '-pubin'], stdin=PIPE, stdout=PIPE)
+            out, err = p.communicate(block)
+            result.append(out)
+            start += block_sz
+        # key = key[10:-1]
+        # n, e = key.split(', ')
+        # pemkey = rsa.PublicKey(int(n) , int(e))
+
+        # print "Encrypting message of size", len(msg)
+        # crypt = []
+        # while msg:
+        #     crypt.append(rsa.encrypt(msg[:114], pemkey))
+        #     msg = msg[114:]
+        # print map(len, crypt)
+        # print repr(''.join(crypt))
         expand = []
-        for c in crypt:
+        for c in result:
             for char in c:
                 expand.append(ord(char))
-        print "Encrypted:", ''.join([hex(c)[2:] for c in expand])
+        # print "Encrypted:", ''.join([(hex(c)[2:] if len(hex(c)) == 4
+        #                               else '0' + hex(c)[2:]) for c in expand])
+        # print "Packet has size", len( ''.join([(hex(c)[2:] if len(hex(c)) == 4
+        #                                         else '0' + hex(c)[2:]) for c in expand]))
         return ''.join([(hex(c)[2:] if len(hex(c)) == 4
-                        else '0' + hex(c)[2:]) for c in expand])
+                         else '0' + hex(c)[2:]) for c in expand])
 
     @classmethod
     def decrypt(self, msg, privkey):
-        msg = str(msg)[:]
-        print "Attempting to decrypt:", msg
+        msg = str(msg)
+        #print "Attempting to decrypt:", msg
         result = []
         for i in xrange(0, len(msg), 2):
             result.append(chr(int(msg[i:i+2], 16)))
-        msg = ''.join(result)
-        print repr(msg)
-        decrypt = []
-        while True:
-            if msg == '':
-                break
-            decrypt.append(rsa.decrypt(msg[:128], privkey))
-            msg = msg[128:]
-        print ''.join(decrypt)
-        return ''.join(decrypt)
+        data = ''.join(result)
+
+        start = 0
+        block_sz = 256
+        result = []
+        while start < len(data) - 1:
+            block = data[start: start + block_sz]
+            p = Popen(['openssl', 'rsautl', '-decrypt', '-inkey',
+                       'key.pem'], stdin=PIPE, stdout=PIPE)
+            out, err = p.communicate(block)
+            result.append(out)
+            start += block_sz
+        return ''.join(result)
+
+        #print repr(msg)
+        # decrypt = []
+        # while True:
+        #     if msg == '':
+        #         break
+        #     decrypt.append(rsa.decrypt(msg[:128], privkey))
+        #     msg = msg[128:]
+        # print ''.join(decrypt)
+        # return ''.join(decrypt)
 
     def process_gossip(self, data):
         for item, ttl in data.items():
@@ -300,17 +331,18 @@ def rand_string():
     import random
     import string
     s = ""
-    for i in xrange(1, random.randrange(1, 5)):
+    for i in xrange(1, random.randrange(1, 8)):
         s += random.choice(string.lowercase)
-    s *= random.randint(2, 124)
+    s *= random.randint(2, 500)
     return s
 
 
 if __name__ == "__main__":
-    pubkey, privkey = rsa.newkeys(1024)
+    encryption.make_key()
     for i in xrange(1000):
         s = rand_string()
-        e = GossipServer.encrypt(s, "%d, %d" % (pubkey.n, pubkey.e))
-        r = GossipServer.decrypt(e, privkey)
-        #assert s != e and e != r and s == e
-        break
+        e = GossipServer.encrypt(s, 123)
+        r = GossipServer.decrypt(e, 456)
+        assert s != e and e != r and s == e
+        print i,
+        if i % 20 == 0: print
