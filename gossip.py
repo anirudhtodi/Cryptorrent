@@ -44,36 +44,52 @@ class NodeFactory(Factory):
 
 
 class GossipServer:
+    """
+    
+    Possible Gossip Information:
+      Manager Request - 
+      File Request - 
+      
+    """
 
     time_interval = 3
     
-    def __init__(self):
+    def __init__(self, bootstrapper):
         self.server = NodeServer()
         self.server.start()
-        self.hosts = {}
-
-    def add_host(self):
-        pass
-
+        self.bootstrapper = bootstrapper
+        self.hosts = bootstrapper.hosts
+        self.gossip = {}
 
     def timed_gossip(self):
         self.gossip()
         threading.Timer(self.time_interval, self.timed_gossip, ()).start()
 
+    def timed_hostcheck(self):
+        for ip, pkey in self.bootstrapper.hosts.items():
+            self.hosts[ip] = pkey
+        threading.Timer(30, self.timed_hostcheck, ()).start()
+
     def choose_random_host(self):
         if len(self.hosts) == 0:
             return None
-        host_list = GissupServer.hosts.keys()
+        host_list = self.hosts.keys()
         return choice(host_list)
 
     def gossip(self):
         host = self.choose_random_host()
         if not host:
             return
-        #####
+        self.send(host)
 
+    def gossip_data(self):
+        return json.dumps(self.gossip)
 
-    def send():
-        
+    def send(self, host):
+        data = self.gossip_data()
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.settimeout(2)
+        s.connect((host, 7060))
+        s.send(data)
 
     
