@@ -25,8 +25,8 @@ def dict_convert(dic, item):
 def dict_unconvert(dic):
     newdic = {}
     for key, val in dic.items():
+        print type(key), key
         item = tuple(json.loads(key))
-        print type(item), item
         newdic[item] = val
     return newdic
     
@@ -87,6 +87,7 @@ class GossipServer:
         self.hosts = bootstrapper.hosts
         self.gossip_queue = []
         self.gossip_dict = {}
+        self.current_gossip = set()
 
         self.timed_gossip()
         self.timed_hostcheck()
@@ -94,8 +95,9 @@ class GossipServer:
 
     def process_gossip(self, data):
         for item, ttl in data.items():
-            if item not in self.gossip_dict:
-                print "\tProcessing Gossip:", item
+            if item[:-1] not in self.current_gossip:
+                self.current_gossip.add(item[:-1])
+                print "\tProcessing Gossip:", item, self.gossip_dict
                 if item[0] == 'filereq':
                     file_offer = self.gen_file_offer(item)
                     if file_offer:
@@ -164,7 +166,6 @@ class GossipServer:
             item = None
         if not host:
             return
-        print "Gossiping with", host
         self.send(host, item)
 
     def gossip_data(self, item):
@@ -187,7 +188,9 @@ class ManagerNode(GossipServer):
     
     def __init__ (self, gossiper):
         self.gossiper = gossiper
-        
+        threading.Timer(5, self.process_chunk_requests, ()).start()        
+
+
     def manage(self, item):
         # Register each file that this node should be a manager of
         # Register every node that tells the manager that it is the source
@@ -200,7 +203,7 @@ class ManagerNode(GossipServer):
             self.files_to_process[filereq] = [0, filesize]
         self.files_to_process[filereq].append(source_ip)
 
-    def send_chunk_requests(self):
+    def process_chunk_requests(self):
         for filereq_to_process, filereq_info in self.files_to_process.items():
             amount_processed = filereq_info[0]
             filesize = filereq_info[1]
@@ -214,5 +217,5 @@ class ManagerNode(GossipServer):
                 chunk_request = ('send_chunk', filereq_to_process[1],
                                  start_byte_number, end_byte_number,
                                  filereq_to_process, 1)
-                self.gossiper(chunk_request)
+                self.gossiper.send_chunk_request(chunk_request, file_containing_node)
             
