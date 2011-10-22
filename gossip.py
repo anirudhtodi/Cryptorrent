@@ -236,7 +236,6 @@ class GossipServer:
             item = None
         if not host:
             return
-        print "GOSSIP", host
         self.send(host, item)
 
     def gossip_data(self, item):
@@ -248,9 +247,10 @@ class GossipServer:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.settimeout(2)
             s.connect((host, 7060))
-            s.send(str(data))
+            s.send(data)
         except Exception as e:
-            print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
+            ###print "EXCEPTION IN SEND:", str(e), "\n\tFOR HOST:", host
+            pass
 
 
 class ManagerNode(GossipServer):
