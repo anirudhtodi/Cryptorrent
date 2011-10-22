@@ -98,8 +98,8 @@ class BackupClientThread(threading.Thread):
             data = ''
 
             while True:
-                x = s.recv(1024)
-                if len(x) < 1024:
+                x = s.recv(2048)
+                if len(x) < 2047:
                     data += x
                     break
                 data += x
