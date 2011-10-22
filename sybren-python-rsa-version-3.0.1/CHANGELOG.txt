@@ -1,0 +1,35 @@
+Python-RSA changelog
+========================================
+
+Version 3.0.1 - released 2011-08-07
+----------------------------------------
+
+- Removed unused import of abc module
+
+
+Version 3.0 - released 2011-08-05
+----------------------------------------
+
+- Changed the meaning of the keysize to mean the size of ``n`` rather than
+  the size of both ``p`` and ``q``. This is the common interpretation of
+  RSA keysize. To get the old behaviour, double the keysize when generating a
+  new key.
+  
+- Added a lot of doctests
+
+- Added random-padded encryption and decryption using PKCS#1 version 1.5
+
+- Added hash-based signatures and verification using PKCS#1v1.5
+
+- Modeling private and public key as real objects rather than dicts.
+
+- Support for saving and loading keys as PEM and DER files.
+
+- Ability to extract a public key from a private key (PEM+DER)
+
+
+Version 2.0
+----------------------------------------
+
+- Security improvements by Barry Mead.
+
