@@ -1,5 +1,6 @@
 import signal
 import json
+from filemanager import FileManager
 from encryption import Encryptor
 from random import host
 from twisted.internet.protocol import Factory, Protocol
@@ -49,9 +50,13 @@ class GossipServer:
     """
     
     Possible Gossip Information:
-      Manager Request - 
       File Request - 
         ('filereq', {dest-ip}, {filename}, {manager-ip})
+      Send Chunk -
+        
+      Chunk - 
+      
+      Has File - 
       
     """
 
@@ -70,7 +75,9 @@ class GossipServer:
                 pass
             elif item[0] == 'chunk':
                 pass
-            elif item[0] == '':
+            elif item[0] == 'send_chunk':
+                pass
+            elif item[0] == 'has_file':
                 pass
 
     def init_file_request(self, filename):
