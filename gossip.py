@@ -52,6 +52,7 @@ class NodeServer(LineReceiver, threading.Thread):
 
     def dataReceived(self, line):
         decr =  encryption.decrypt(line)
+        print "DECR", decr
         self.gossiper.process_gossip(dict_unconvert(json.loads(decr)))
         
     def lineReceived(self, line):
@@ -217,7 +218,6 @@ class ManagerNode(GossipServer):
         self.files_to_process[filereq].append(source_ip)
 
     def process_chunk_requests(self):
-        print self.files_to_process
         for filereq_to_process, filereq_info in self.files_to_process.items():
             if not filereq_info:
                 continue

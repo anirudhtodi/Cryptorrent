@@ -8,7 +8,7 @@ def make_key():
 
 def encrypt(data, pubkey):
     start = 0
-    block_sz = 244
+    block_sz = 225
     result = []
     fout = open("/tmp/pub-key.pem", 'w')
     fout.write(pubkey)
