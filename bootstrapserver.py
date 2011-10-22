@@ -88,7 +88,7 @@ class runListener(Thread):
     def run(self):
         reactor.listenTCP(8007, LogfileFactory("bootstrap.log"))
         print "listening TCP on port 8007"
-        reactor.run(installSignalHandlers=0)
+        #reactor.run(installSignalHandlers=0)
 
 runListener().start()
 

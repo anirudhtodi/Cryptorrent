@@ -52,7 +52,7 @@ class MulticastServerThread(threading.Thread):
 
     def run(self):
         reactor.listenMulticast(8005, MulticastServerUDP(self.pkey))
-        reactor.run(installSignalHandlers=0)
+        #reactor.run(installSignalHandlers=0)
 
 ##########
 # CLIENT #

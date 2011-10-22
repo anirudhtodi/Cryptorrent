@@ -25,27 +25,27 @@ def dict_convert(dic, item):
 def dict_unconvert(dic):
     newdic = {}
     for key, val in dic.items():
-        newdic[json.loads(key)] = val
+        newdic[tuple(json.loads(key))] = val
     return newdic
     
 
 class NodeServer(LineReceiver, threading.Thread):
     hosts = set()
+    gossiper = None
 
-    def __init__(self, gossiper):
+    def __init__(self):
         threading.Thread.__init__(self)
-        self.gossiper = gossiper
 
     def run(self):
         reactor.listenTCP(7060, NodeFactory())
-        #reactor.run(installSignalHandlers=0)
+        reactor.run(installSignalHandlers=0)
 
     def connectionMade(self):
         #client = self.transport.getPeer().host
         pass
 
     def dataReceived(self, line):
-        self.gossiper.process_gossip(dict_unconvert(line))
+        self.gossiper.process_gossip(dict_unconvert(json.loads(line)))
         
     def lineReceived(self, line):
          pass
@@ -76,7 +76,8 @@ class GossipServer:
     """
     
     def __init__(self, bootstrapper):
-        self.server = NodeServer(self)
+        self.server = NodeServer()
+        NodeServer.gossiper = self
         self.server.start()
         self.filemanager = FileManager()
         self.manager = ManagerNode(self)
